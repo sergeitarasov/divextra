@@ -26,3 +26,23 @@ report_p <- function(p, digits = 3) {
 
   return(p_string)
 }
+
+
+
+
+#' Title make intis
+#'
+#' @param k param
+#'
+#' @return function
+#' @export
+#'
+#' @examples
+#'
+#' make_initial_conditions_mine(3)
+make_initial_conditions_mine <- function(k) {
+  diversitree:::make.initial.conditions.classe(k)
+}
+
+
+

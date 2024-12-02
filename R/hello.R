@@ -13,18 +13,27 @@
 #   Check Package:             'Cmd + Shift + E'
 #   Test Package:              'Cmd + Shift + T'
 
-# hello <- function() {
-#   print("Hello, world!")
-# }
+
+# https://debruine.github.io/tutorials/packages.html
 
 
 # usethis::use_roxygen_md()
 # devtools::document()
 # usethis::use_package("diversitree")
+# usethis::use_package("ape")
 # usethis::use_package("stringr")
 # usethis::use_pipe()
+
+# utils::getFromNamespace("make.initial.conditions.classe", "diversitree")
 
 # devtools::load_all()
 
 # devtools::check()
 # devtools::build()
+
+
+#------ Testing
+# report_p(-1)
+
+# usethis::use_test("report_p")
+# devtools::test()
