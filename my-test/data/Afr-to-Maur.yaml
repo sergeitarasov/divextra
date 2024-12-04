@@ -1,0 +1,45 @@
+# Parameters for GeoSSE
+# Africa -> Mauritius
+
+# sA, sB parameters
+lambda_unit_regions:
+  A:  sA
+  M:  sA
+  Mr: sA
+  OP: sA
+  #S:  sA
+
+# sAB parameters
+lambda_comb_regions:
+      # [A.B->(A, B), A.B->(A, A.B), A.B->(B, A.B)]
+  A.M:  [sA, sA, sA]
+  A.Mr: [sA, sA, sA]
+  A.OP: [sA, sA, sA]
+  #A.S:  [sA, sA, sA]
+  #Mr.S: [sA, sA, sA]
+
+# dA, dB parameters
+Q_dQ:
+      # A.M    A.Mr   A.OP    A.S   Mr.S
+  A:  [q,       q,     q,      0,    0]
+  M:  [0,       0,     0,      0,    0]
+  Mr: [0,       0,     0,      0,    0]
+  OP: [0,       0,     q,      0,    0]
+  S:  [0,       0,     0,      0,    0]
+
+
+# xA, xB parameters
+mu:
+  A:  x
+  M:  x
+  Mr: x
+  OP: x
+  #S:  x
+
+Q_xQ:
+         # A        M      Mr      OP    S
+  A.M:   [x,        x,     0,      0,    0]
+  A.Mr:  [x,        0,     x,      0,    0]
+  A.OP:  [x,        0,     0,      x,    0]
+  A.S:   [0,        0,     0,      0,    0]
+  Mr.S:  [0,        0,     0,      0,    0]

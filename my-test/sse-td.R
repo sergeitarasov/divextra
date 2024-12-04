@@ -1,3 +1,9 @@
+library(yaml)
+library(diversitree)
+library(divextra)
+source('R/utils-yaml.R')
+source('R/utils-sse.R')
+
 # make.musse.td
 # make.bisse.td
 # make.classe
@@ -13,7 +19,14 @@
 # saveRDS(phy, 'my-test/data/phy.rds')
 # write.tree(phy, 'my-test/data/phy.tree')
 
-
+## GeoSSE equivalence
+## Same tree simulated in ?make.geosse
+# pars <- c(1.5, 0.5, 1.0, 0.7, 0.7, 2.5, 0.5)
+# names(pars) <- diversitree:::default.argnames.geosse()
+# set.seed(5)
+# phy <- tree.geosse(pars, max.taxa=50, x0=0)
+# saveRDS(phy, 'my-test/data/phy-50tips.rds')
+# write.tree(phy, 'my-test/data/phy.tree')
 
 #------
 phy <- readRDS('my-test/data/phy.rds')
@@ -93,10 +106,18 @@ lik.ctd(par.ctd)
 phy <- read.tree(text = '(sp1:1.014858647,(((sp4:0.2614280769,sp5:0.2614280769)nd4:0.007869378189,sp3:0.2692974551)nd3:0.01878075832,sp2:0.2880782134)nd2:0.7267804339)nd1;')
 states <- species_counts <- c(sp1 = 2, sp2 = 2, sp3 = 1, sp4 = 0, sp5 = 1)
 
+trace("make.classe", tracer = quote(cat("function_name called\n")),  where = "package:diversitree")
+
+debug(diversitree::make.classe)
+debug(lik.c)
+
 # classe model
-lik.c <- make.classe(phy, states+1, 3)
+lik.c <- diversitree::make.classe(phy, states+1, 3)
 pars.c <- starting.point.classe(phy, 3)
 lik.c(pars.c)   # -8.367568
+
+
+
 
 # classe.td where two time bins have the same pars (=classe)
 lik.ctd <- make.classe.td(phy, states + 1, k=3, n.epoch=2, control=list(backend = "gslode"))
@@ -112,3 +133,35 @@ names(par.ctd2) <- argnames(lik.ctd)
 par.ctd2['lambda222.2'] <- 0.4
 par.ctd2['lambda222.1'] <- 0.1
 lik.ctd(par.ctd2) # -8.268788
+
+
+#---------------------------------------- Prune node
+phy <- read.tree(text = '(sp1:1.014858647,(((sp4:0.2614280769,sp5:0.2614280769)nd4:0.007869378189,sp3:0.2692974551)nd3:0.01878075832,sp2:0.2880782134)nd2:0.7267804339)nd1;')
+
+
+library(ape)
+
+plot(phy)
+nodelabels()
+
+node_to_prune <- 9
+
+# Get all descendants of the specified node
+descendants <- phangorn::Descendants(phy, node = node_to_prune, type = "all")
+
+# Prune the descendants
+pruned_tree <- drop.tip(phy, phy$tip.label[descendants], trim.internal = FALSE)
+
+# Plot the pruned tree
+plot(pruned_tree, main = "Tree After Pruning Descendants")
+nodelabels()
+
+# classe model
+states.pruned <- species_counts <- c(sp1 = 3, sp2 = 2, sp3 = 1, nd4=1)
+lik.c <- make.classe.td(pruned_tree, states.pruned, 3, strict=F)
+pars.c <- starting.point.classe(phy, 3)
+lik.c(pars.c)   # -8.367568
+
+
+
+st.m <- asr.marginal(lik, pars[5:6])

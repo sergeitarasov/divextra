@@ -95,6 +95,27 @@ make.cache.classe.td <- function (tree, states, k, n.epoch, sampling.f, strict)
   cache
 }
 
+# make.cache.classe.td <- function (tree, states, k, n.epoch, sampling.f, strict)
+# {
+#   if (k > 31)
+#     stop("No more than 31 states allowed.  Increase in classe-eqs.c.")
+#
+#   #--- from make.cache.musse()
+#   #cache <- diversitree:::make.cache.musse(tree, states, k, sampling.f, strict)
+#   if (strict)
+#     tree <- diversitree:::check.tree(tree)
+#   states <- diversitree:::check.states(tree, states, strict=strict, strict.vals=1:k)
+#   cache <- diversitree:::make.cache(tree)
+#   cache$info <- diversitree:::make.info.musse(k, tree)
+#   cache$states <- states
+#   cache$sampling.f <- diversitree:::check.sampling.f(sampling.f, k)
+#   cache$y <- diversitree:::initial.tip.xxsse(cache)
+#   #---
+#
+#   # cache$info <- diversitree:::update.info.td(cache$info, n.epoch)
+#   cache$info <- update.info.classe_td(cache$info, k, n.epoch)
+#   cache
+# }
 
 # tree        = readRDS('my-test/data/phy.rds')
 # states      = phy$tip.state+1
