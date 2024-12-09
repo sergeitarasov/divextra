@@ -96,7 +96,27 @@ split_vector <- function(vec, K) {
 
 
 
-#Nstates = 2
+
+
+#' Display ClaSSE parameters as arrays
+#'
+#' @description
+#' Takes a named vector of ClaSSE parameters and displays them as arrays
+#'
+#'
+#' @param pars ClaSSE parameters
+#' @param Nstates number of character states
+#' @param nm names for character states
+#'
+#' @return a list of arrays
+#' @export
+#'
+#' @examples
+#'
+#' reg <- c("A", "B", "A.B")
+#' pars <- diversitree:::default.argnames.classe(3)
+#' args <- pars_to_arrays(pars, 3, reg)
+#' print(args)
 pars_to_arrays <- function(pars, Nstates, nm=NULL){
   # number of lambdas
   #0.5*(Nstates*Nstates-Nstates)+Nstates
@@ -129,23 +149,93 @@ pars_to_arrays <- function(pars, Nstates, nm=NULL){
 
   return(list(lam.tensor=lam.tensor, mu=mu, Q=Q))
 }
-# # Test
-# Nstates = 3
-# argsHiClaSSE2 <- argnames_HiClaSSE(Nstates)
-# argsHiClaSSE2$pars
-# argsHiClaSSE2$arrays
-# pars <- c(1:27)
-# names(pars) <- argsHiClaSSE2$pars
-# pars
-# pars_to_arrays(pars, Nstates)
 
+
+
+#' Reorder character states in arrays
+#'
+#' @param pars.array a list of arrays
+#' @param v new order of character states
+#'
+#' @return a list of arrays
+#' @export
+#'
+#' @examples
+#'
+#' reg <- c("A", "B", "A.B")
+#' pars <- diversitree:::default.argnames.classe(3)
+#' args <- pars_to_arrays(pars, 3, reg)
+#' print(args)
+#' new.order <- reoder_pars(args, c(3,1,2))
+#' print(new.order)
+reoder_pars <- function(pars.array, v){
+  lam.tensor <- pars.array$lam.tensor
+  mu <- pars.array$mu
+  Q <- pars.array$Q
+
+  lam.tensor <- lapply(lam.tensor, function(x) x[v,v])
+  lam.tensor <- lam.tensor[v]
+  mu <- mu[v]
+  Q <-Q[v,v]
+
+  list(lam.tensor=lam.tensor, mu=mu, Q=Q)
+}
+
+
+
+#' Akaike Information Criterion (AIC)
+#'
+#' @param vec a vector of likelihood values
+#' @param npar number of parameters
+#'
+#' @description
+#' The Akaike Information Criterion (AIC) is a measure used to compare the relative quality
+#' of statistical models for a given dataset. It is calculated as:
+#'
+#' \deqn{AIC = 2k - 2 \ln(L)}
+#'
+#' @return AIC scores
+#' @export
+#'
+#' @examples
+#'
+#' get_aic(2768.948, 4)
 get_aic <- function(vec, npar){
   2*npar - 2*vec
 }
 
 
-# k = 3
-# n.epoch = 2
+
+# lik.const.td <- constrain(lik.td, formulae = formula.td)
+# arg.const.td <- argnames(lik.const.td)
+# arg.const.td
+# init <- starting.point.classe_td(phy, k=3, n.epoch=2)
+# starting.point <- init[arg.const.td]
+# starting.point
+
+
+
+
+# Creates a starting point for ML inference with episodic ClaSSE
+#
+# @param phy phylogenetic tree
+# @param k character state count
+# @param n.epoch number of time epochs
+#
+# @description
+# This function uses diversitree:::starting.point.classe() to create the same
+# starting parameter values for each time epoch.
+#
+# @seealso \code{\link[diversitree]{starting.point.classe}}
+#
+# @return A named vector containing starting parameter values for each time epoch.
+# @export
+#
+# @examples
+#
+# file_path <- system.file("extdata", "geosse_tb_tree.rds", package = "divextra")
+# phy <- readRDS(file_path)
+# starting.point.classe_td(phy, k=3, n.epoch=2)
 starting.point.classe_td <- function(phy, k, n.epoch){
   start.classe <- diversitree:::starting.point.classe(phy, k)
   argnames_classe <-  diversitree:::default.argnames.classe(k)
@@ -153,4 +243,46 @@ starting.point.classe_td <- function(phy, k, n.epoch){
   out <- rep(start.classe, n.epoch)
   names(out) <- argnames.td
   out
+}
+
+
+#' Creates a starting point for episodic ClaSSE with parameter constrains
+#'
+#' @param lik.const.td constrained likelihood function
+#' @param phy tree
+#' @param k number of states
+#' @param n.epoch number of epochs
+#'
+#' @return A named vector containing starting parameter values for each time epoch.
+#' @export
+#'
+#' @examples
+#'
+#' file_path <- system.file("extdata", "geosse_tb_tree.rds", package = "divextra")
+#' phy <- readRDS(file_path)
+#' file_path <- system.file("extdata", "geosse3_td_test.yml", package = "divextra")
+#' par.categories.td <- read_yaml_pars_td(file_path)
+#' formula.td <- make_constraints_sse_td(par.categories.td)
+#' lik.td <-make.classe.td(phy, phy$tip.state, k=3, n.epoch=2, control=list(backend = "gslode"))
+#' lik.const.td <- diversitree:::constrain(lik.td, formulae = formula.td)
+#' starting.point <- init.pars.classe_td(lik.const.td, phy, k=3, n.epoch=2)
+init.pars.classe_td <- function(lik.const.td, phy, k, n.epoch){
+  arg.const.td <- diversitree:::argnames(lik.const.td)
+  init <- starting.point.classe_td(phy, k=k, n.epoch=n.epoch)
+  starting.point <- init[arg.const.td]
+  starting.point
+}
+
+
+
+
+#' Group parameters based on the same parameter estimates
+#'
+#' @param vec A named vector of parameter estimates
+#'
+#' @return a list
+#' @export
+#'
+pars2groups <- function(vec){
+  split(names(vec), vec)
 }

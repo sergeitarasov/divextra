@@ -11,11 +11,17 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
-Imports: 
+Depends:
+    R (>= 4.3.1),
     ape,
     diversitree (>= 0.9-20),
+    yaml
+Imports: 
     magrittr,
     stringr
 Suggests: 
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+VignetteBuilder: knitr

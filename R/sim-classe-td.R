@@ -1,8 +1,8 @@
 
 
-#' Converts ClaSSE parameters to GeoSSE
+#' Converts GeoSSE parameters to ClaSSE
 #'
-#' @param pars.ge
+#' @param pars.ge GeoSSE parameters
 #'
 #' @return vector
 #' @description
@@ -87,6 +87,7 @@ table2tree <- function(info) {
   # In simulations epoch1 starts  at the root, while in inference it starts at the tips
   # Thus, for the inference the model switches regimes at
   phy$t.regime.change <- phy$epoch12.tree.depth - phy$epoch1.extant.tree.depth
+  phy$sim.pars <- attr(info, "sim.pars") # parameters used in simulation
 
   return(phy)
 }
@@ -112,11 +113,15 @@ table2tree <- function(info) {
 #'
 #' @details
 #' The time epochs start from the root, so the simulation begins with epoch 1 and ends in epoch 2.
-#' The maximum number of epochs is two.' Note, in ML calculation with make.classe.td(),
+#' The maximum number of epochs is two.' Note, in the ML calculation with make.classe.td(),
 #' the epoch order is reversed -- epoch 1 starts at tips.
+#'
+#' This function simulates the tree using the code from diversitree:::make.tree.classe() for epoch one defined by
+#' max.t1. Next, the tree from epoch one is used to simulate the final tree with the code from diversitree:::make.tree.classe() as well.
 #'
 #' The simulations are tested only with max.t1 and max.t2 arguments. Use max.taxa at your own risk.
 #' The argument single.lineage should be always set to TRUE.
+#'
 #'
 #' The returned data frame contains three attributes: attr(info, "info.epoch1") attr(info, "t.epoch1") attr(info, "t.total").
 #'
@@ -378,6 +383,7 @@ make.tree.classe.td <- function(pars.tb, k, max.taxa=Inf, max.t1=Inf, max.t2=Inf
   attr(info, "info.epoch1") <- info1
   attr(info, "t.epoch1") <- t.epoch1 # time of epoch 1 (=max.t1)
   attr(info, "t.total") <- t # total time (=max.t2)
+  attr(info, "sim.pars") <- pars.tb # parameters used in the simulation
   #attr(info, "hist") <- hist
   info
 }

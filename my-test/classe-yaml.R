@@ -3,6 +3,9 @@ library(diversitree)
 source('R/utils-yaml.R')
 source('R/utils-sse.R')
 
+
+
+#---
 reg <- c("A", "M", "Mr", "OP", "S", "A.M", "A.Mr", "A.OP", "A.S", "Mr.S")
 pars <- diversitree:::default.argnames.classe(10)
 args <- pars_to_arrays(pars,10, reg)

@@ -1,0 +1,66 @@
+# Parameters for GeoSSE with two regions (A, B), and three states: A, B, AB
+
+# single regions first
+states: [A, B, A.B]
+
+# td model
+n.epoch: 2
+epoch.times: [5]
+
+#---------------- Epoch 1
+1:
+  # Speciation event without dispersal (e.g., sA, sB) corresponding to lambdas without state changes (e.g, lam_iii)
+  lambda_unit_regions:
+    A:  sA
+    B:  sA
+
+  # Speciation events occuring when a lineage is in combined region/state (e.g., sAB)
+  lambda_comb_regions:
+        # [A.B->(A, B), A.B->(A, A.B), A.B->(B, A.B)]
+    A.B:  [sA, sA, sA]
+
+  # Range expansion events (e.g., dA, dB) corresponding to q parameters
+  Q_dQ:
+        # A.B
+    A:  [dA]
+    B:  [dA]
+
+
+  # Range contraction events (e.g., xA, xB) corresponding to mu parameters
+  mu:
+    A:  xA
+    B:  xA
+
+  # Range contraction events (e.g., xA, xB) corresponding to q parameters
+  Q_xQ:
+           # A        B
+    A.B:   [xA,        xA]
+
+#---------------- Epoch 2
+2:
+  # Speciation event without dispersal (e.g., sA, sB) corresponding to lambdas without state changes (e.g, lam_iii)
+  lambda_unit_regions:
+    A:  sA
+    B:  sA
+
+  # Speciation events occuring when a lineage is in combined region/state (e.g., sAB)
+  lambda_comb_regions:
+        # [A.B->(A, B), A.B->(A, A.B), A.B->(B, A.B)]
+    A.B:  [sA, sA, sA]
+
+  # Range expansion events (e.g., dA, dB) corresponding to q parameters
+  Q_dQ:
+        # A.B
+    A:  [dA]
+    B:  [dA]
+
+
+  # Range contraction events (e.g., xA, xB) corresponding to mu parameters
+  mu:
+    A:  xA
+    B:  xA
+
+  # Range contraction events (e.g., xA, xB) corresponding to q parameters
+  Q_xQ:
+           # A        B
+    A.B:   [xA,        xA]

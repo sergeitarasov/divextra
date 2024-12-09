@@ -79,19 +79,10 @@ dQ2pars <- function(dQ, args){
 }
 
 #yaml_file="my-test/data/2-regions.yml"
-#' Title
-#'
-#' @param yaml_file
-#' @param args
-#'
-#' @return
-#' @export
-#'
-#' @examples
 yaml2vec <- function(yaml_file, args){
 
   to_char <- function(x){as.character(x)}
-  yaml <- yaml.load_file(yaml_file, handlers=list("int"= to_char))
+  yaml <- yaml::yaml.load_file(yaml_file, handlers=list("int"= to_char))
   #yaml
   unitReg <- yaml$lambda_unit_regions
   sA <- unit2pars(unitReg, args)
@@ -117,12 +108,23 @@ yaml2vec <- function(yaml_file, args){
   return(out)
 }
 
-# yaml_file="my-test/data/2-regions.yml"
-# read_yaml_pars(yaml_file)
+
+#' Read parameters of time-homogeneous GeoSSE model from yaml file
+#'
+#' @param yaml_file yaml file
+#'
+#' @return named list of parameters and configurations
+#' @export
+#'
+#' @examples
+#'
+#' file_path <- system.file("extdata", "geosse3_ti_maxpar.yml", package = "divextra")
+#' par.categories <- read_yaml_pars(file_path)
+#' print(par.categories)
 read_yaml_pars <-  function(yaml_file){
 
   to_char <- function(x){as.character(x)}
-  yaml <- yaml.load_file(yaml_file, handlers=list("int"= to_char))
+  yaml <- yaml::yaml.load_file(yaml_file, handlers=list("int"= to_char))
 
   regions <- yaml$states
   Nstates <- length(yaml$states)
@@ -132,13 +134,25 @@ read_yaml_pars <-  function(yaml_file){
   yaml2vec(yaml_file, args)
 }
 
-# yaml_file="my-test/data/2-regions-td.yml"
-# read_yaml_pars(yaml_file)
+
+
+#' Read parameters of episodic GeoSSE model from yaml file
+#'
+#' @param yaml_file yaml file
+#'
+#' @return named list of parameters and configurations
+#' @export
+#'
+#' @examples
+#'
+#' file_path <- system.file("extdata", "geosse3_td_maxpar.yml", package = "divextra")
+#' par.categories.td <- read_yaml_pars_td(file_path)
+#' print(par.categories.td)
 read_yaml_pars_td <-  function(yaml_file){
 
   # read yaml
   to_char <- function(x){as.character(x)}
-  yaml <- yaml.load_file(yaml_file, handlers=list("int"= to_char))
+  yaml <- yaml::yaml.load_file(yaml_file, handlers=list("int"= to_char))
 
   # get metadata
   regions <- yaml$states
@@ -202,9 +216,19 @@ read_yaml_pars_td <-  function(yaml_file){
 }
 
 
-# yaml_file="my-test/data/2-regions.yml"
-# par.categories <- read_yaml_pars(yaml_file)
-# make_constraints_sse(par.categories)
+#' Create parameter constraints for time-homogeneous ClaSSE
+#'
+#' @param par.categoriesa a named list of parameters, for example, from read_yaml_pars_td()
+#'
+#' @return list of formulas
+#' @export
+#'
+#' @examples
+#' file_path <- system.file("extdata", "geosse3_ti_maxpar.yml", package = "divextra")
+#' par.categories <- read_yaml_pars(file_path)
+#' print(par.categories)
+#' pars <- make_constraints_sse(par.categories)
+#' print(pars)
 make_constraints_sse <- function(par.categories){
   #regions <- yaml$states
   Nstates <- par.categories$Nstates
@@ -213,15 +237,30 @@ make_constraints_sse <- function(par.categories){
 }
 
 
-# par.categories.td <- read_yaml_pars_td("my-test/data/2-regions-td.yml")
-# make_constraints_sse_td(par.categories)
+
+
+
+#' Create parameter constraints for episodic ClaSSE
+#'
+#' @param par.categories.td a named list of parameters, for example, from read_yaml_pars_td()
+#'
+#' @return list of formulas
+#' @export
+#'
+#' @examples
+#' file_path <- system.file("extdata", "geosse3_td_maxpar.yml", package = "divextra")
+#' par.categories.td <- read_yaml_pars_td(file_path)
+#' print(par.categories.td)
+#' formula.td <- make_constraints_sse_td(par.categories.td)
+#' print(formula.td)
 make_constraints_sse_td <- function(par.categories.td){
   #regions <- yaml$states
   n.epoch = par.categories.td$n.epoch
   Nstates <- par.categories.td$Nstates
   #pars <- diversitree:::default.argnames.classe(Nstates)
   #pars2formula(par.categories$pars, pars)
-  #------
+
+  #
   argnames_classe <-  diversitree:::default.argnames.classe(Nstates) #length(argnames_classe)
   pars <- diversitree:::argnames_twopart(argnames_classe, n.epoch)
   # argnames.td <- c(sprintf("t.%d", seq_len(n.epoch - 1)), diversitree:::argnames_twopart(argnames_classe, n.epoch))
@@ -242,13 +281,21 @@ make_constraints_sse_td <- function(par.categories.td){
 
 }
 
-# reg <- c("A", "B", "A.B")
-# pars <- diversitree:::default.argnames.classe(3)
-# args <- pars_to_arrays(pars, 3, reg)
-# grouped_pars <- yaml2vec("my-test/data/2-regions.yml", args)
-# view_pars_as_array(pars, grouped_pars, k=3, regions=reg)
 
-view_pars_as_array <- function(par.categories){
+
+#' Display symbolic parameters of time-homogeneous ClaSSE as arrays
+#'
+#' @param par.categories named list of parameters and configurations (e.g., from yaml file)
+#'
+#' @return a list of arrays
+#' @export
+#'
+#' @examples
+#'
+#' file_path <- system.file("extdata", "geosse3_ti_maxpar.yml", package = "divextra")
+#' yaml_pars <- read_yaml_pars(file_path)
+#' pars_yaml_to_arrays(yaml_pars)
+pars_yaml_to_arrays <- function(par.categories){
 
   k <- par.categories$Nstates
   regions <- par.categories$states
@@ -271,7 +318,57 @@ view_pars_as_array <- function(par.categories){
 }
 
 
-#------------------------
+
+# Function to filter elements in the list
+filter_elements_by_suffix <- function(named_list, suffix) {
+  lapply(named_list, function(vec) vec[grepl(paste0("\\", suffix, "$"), vec)])
+}
+
+# Function to remove tags from elements in the list
+remove_suffix <- function(named_list, suffix) {
+  lapply(named_list, function(vec) gsub(paste0("\\", suffix, "$"), "", vec))
+}
+
+# Function to remove list elements that are character(0)
+remove_empty_list_elements <- function(lst) {
+  lst[sapply(lst, function(x) length(x) > 0)]
+}
+
+
+#' Display symbolic parameters of episodic ClaSSE as arrays
+#'
+#' @param par.categories.td named list of parameters and configurations (e.g., from yaml file)
+#'
+#' @return a list of arrays
+#' @export
+#'
+#' @examples
+#'
+#' file_path <- system.file("extdata", "geosse3_td_test.yml", package = "divextra")
+#' par.categories.td <- read_yaml_pars_td(file_path)
+#' par.symbolic.td <- pars_yaml_to_arrays_td(par.categories.td)
+#' print(par.categories.td)
+#' print(par.symbolic.td)
+pars_yaml_to_arrays_td <- function(par.categories.td){
+  new.pars <- par.categories.td
+  n.epochs <- par.categories.td$n.epoch
+  out <- vector('list', n.epochs)
+  # i=1
+  for (i in 1:n.epochs){
+    suffix <- paste0('.', i)
+    # Remove elements not ending with e.g. '.1'
+    filtered_list <- filter_elements_by_suffix(par.categories.td$pars, suffix)
+    # Remove e.g., '.1' from elements
+    xxx <- remove_suffix(filtered_list, suffix)
+    # remove empty sublists
+    new.pars$pars <-remove_empty_list_elements(xxx)
+    out[[i]] <- pars_yaml_to_arrays(new.pars)
+  }
+  return(out)
+}
+
+
+
 get_single_pars <- function(list_of_vectors){
   # Select vectors with length 1
   single_length_vectors <- lapply(list_of_vectors, function(x) {
@@ -313,15 +410,6 @@ create_formulas <- function(vec_list) {
 }
 
 # grouped_pars <- yaml2vec("my-test/data/2-regions.yml", args)
-#' Title
-#'
-#' @param grouped_pars
-#' @param pars
-#'
-#' @return
-#' @export
-#'
-#' @examples
 pars2formula <- function(grouped_pars, pars){
   #grouped_pars <- split(names(par.vec ), par.vec )
   #single_pars <- get_single_pars(grouped_pars)

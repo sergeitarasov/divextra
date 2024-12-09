@@ -2,12 +2,12 @@
 % Please edit documentation in R/sim-classe-td.R
 \name{pars.geosse2classe}
 \alias{pars.geosse2classe}
-\title{Converts ClaSSE parameters to GeoSSE}
+\title{Converts GeoSSE parameters to ClaSSE}
 \usage{
 pars.geosse2classe(pars.ge)
 }
 \arguments{
-\item{pars.ge}{}
+\item{pars.ge}{GeoSSE parameters}
 }
 \value{
 vector

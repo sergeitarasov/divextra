@@ -1,0 +1,30 @@
+# Parameters for GeoSSE with two regions (A, B), and three states: A, B, AB
+
+states: [A, B, A.B]
+
+# Speciation event without dispersal (e.g., sA, sB) corresponding to lambdas without state changes (e.g, lam_iii)
+lambda_unit_regions:
+  A:  sA
+  B:  sB
+
+# Speciation events occuring when a lineage is in combined region/state (e.g., sAB)
+lambda_comb_regions:
+      # [A.B->(A, B), A.B->(A, A.B), A.B->(B, A.B)]
+  A.B:  [sAB, sA, sB]
+
+# Range expansion events (e.g., dA, dB) corresponding to q parameters
+Q_dQ:
+      # A.B
+  A:  [dA]
+  B:  [dB]
+
+
+# Range contraction events (e.g., xA, xB) corresponding to mu parameters
+mu:
+  A:  xA
+  B:  xB
+
+# Range contraction events (e.g., xA, xB) corresponding to q parameters
+Q_xQ:
+         # A        B
+  A.B:   [xB,        xA]

@@ -1,0 +1,82 @@
+---
+title: "Episodic-GeoSSE"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Episodic-GeoSSE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# knitr::opts_chunk$set(
+#   collapse = TRUE,
+#   comment = "#>"
+# )
+```
+
+```{r}
+library(divextra)
+```
+
+
+```{r setup}
+file_path <- system.file("extdata", "geosse_tb_tree.rds", package = "divextra")
+phy <- readRDS(file_path)
+plot(phy)
+# parameters used in simulations
+print(phy$sim.pars)
+```
+
+# Episodic GeoSSE whith two epochs having different lambda parameters
+
+## Read in parameter contraints from yaml and create formulas to use this constraints in ML inference
+
+```{r}
+file_path <- system.file("extdata", "geosse3_td_test.yml", package = "divextra")
+par.categories.td <- read_yaml_pars_td(file_path)
+
+# display
+print(par.categories.td)
+# pars_yaml_to_arrays_td(par.categories.td)
+```
+
+Open yaml file in Rstudio
+
+```{r}
+# file.edit(file_path)
+```
+
+
+## Create ML function and starting values for the parameters
+
+```{r}
+lik.td <-make.classe.td(phy, phy$tip.state, k=3, n.epoch=2, control=list(backend = "gslode"))
+formula.td <- make_constraints_sse_td(par.categories.td)
+lik.const.td <- constrain(lik.td, formulae = formula.td)
+starting.point <- init.pars.classe_td(lik.const.td, phy, k=3, n.epoch=2)
+print(starting.point)
+```
+
+## Run ML inference
+
+```{r}
+mle.td <- find.mle(lik.const.td, starting.point, condition.surv=TRUE, keep.func=F)
+```
+
+## Get AIC
+
+```{r}
+# aic.geosse.td <- get_aic(mle.td$lnLik, 4) # 2768.948
+# print(aic.geosse.td)
+logLik(mle.td)
+AIC(mle.td)
+# coef(mle.td)
+```
+
+
+Examine the parameter estimates.
+
+```{r}
+pars2groups(mle.td$par.full)
+```
+

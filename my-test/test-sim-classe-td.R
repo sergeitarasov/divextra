@@ -5,38 +5,8 @@ source('R/utils-yaml.R')
 source('R/utils-sse.R')
 source('R/sim-classe-td.R')
 
-## "sA"  "sB" "sAB" "xA"  "xB"  "dA"  "dB"
-pars.ge <- matrix(
-  c(0.1, 0.1, 0.1,  0, 0,  0.1, 0.1,
-    0.3, 0.3, 0.3,  0, 0,  0.1, 0.1
-  ),
-  2, 7, byrow = TRUE)
-colnames(pars.ge) <- diversitree:::default.argnames.geosse()
-pars.cl <- t(apply(pars.ge, 1, pars.geosse2classe))
-print(pars.cl)
 
-set.seed(123)
-tb <- make.tree.classe.td(pars.cl, k=3, max.t1=10, max.t2=15, x0=1, single.lineage=TRUE)
-print(tb)
-phy <- table2tree(tb)
-plot(phy)
 
-# the tree from epoch 1 only
-tb.e1 <-  attr(tb, "info.epoch1")
-phy.e1 <- diversitree:::me.to.ape.bisse(tb.e1[-1,], tb.e1$state[1])
-phy.e1 <- diversitree::prune(phy.e1) # prune extinct
-plot(phy.e1)
-
-# the final tree (after epoch 2)
-phy$t.epoch1 # time of epoch 1 (=max.t1)
-phy$t.total # total time (=max.t2)
-phy$epoch1.extant.tree.depth # tree depth from epoch 1
-phy$epoch12.tree.depth # total tree depth
-phy$epoch1.ntip # N of tips in epoch 1 only
-Ntip(phy) # total N of tips
-
-# The model changes regimes at (if counting from the tips for the infference):
-phy$t.regime.change # := phy$epoch12.tree.depth - phy$epoch1.extant.tree.depth
 
 #---- simulate GeoSSE td
 
@@ -57,6 +27,7 @@ phy <- table2tree(tb)
 phy$epoch1.ntip
 Ntip(phy)- phy$epoch1.ntip
 plot(phy)
+# saveRDS(phy, file = "inst/extdata/geosse_tb_tree.rds")
 # tb.e1 <-  attr(tb, "info.epoch1")
 # phy.e1 <- diversitree:::me.to.ape.bisse(tb.e1[-1,], tb.e1$state[1])
 # phy.e1 <- diversitree::prune(phy.e1)
@@ -80,8 +51,11 @@ par.categories.td
 pars.cl
 formula.td <- make_constraints_sse_td(par.categories.td)
 
-#phy <- readRDS('my-test/data/phy-50tips.rds')
+file_path <- system.file("extdata", "geosse_tb_tree.rds", package = "divextra")
+phy <- readRDS(file_path)
+
 plot(phy)
+phy$sim.pars
 lik.td <-make.classe.td(phy, phy$tip.state, k=3, n.epoch=2, control=list(backend = "gslode"))
 
 lik.const.td <- constrain(lik.td, formulae = formula.td)
@@ -94,7 +68,7 @@ starting.point
 mle.td <- find.mle(lik.const.td, starting.point, condition.surv=TRUE, keep.func=F)
 mle.td$lnLik
 mle.td$par
-get_aic(mle.td$lnLik, 4) # 3994.674
+get_aic(mle.td$lnLik, 4) # 2768.948
 mle.td$par.full %>% round(., 3)
 # lik.td(mle.td$par.full)
 
@@ -106,6 +80,7 @@ par.categories.td
 pars.cl
 formula.td <- make_constraints_sse_td(par.categories.td)
 
+
 plot(phy)
 lik.td <-make.classe.td(phy, phy$tip.state, k=3, n.epoch=2, control=list(backend = "gslode"))
 
@@ -119,7 +94,7 @@ starting.point
 mle.td <- find.mle(lik.const.td, starting.point, condition.surv=TRUE, keep.func=F)
 mle.td$lnLik
 mle.td$par
-get_aic(mle.td$lnLik, 3) # 4049.455
+get_aic(mle.td$lnLik, 3) # 2820.928
 mle.td$par.full %>% round(., 3)
 # lik.td(mle.td$par.full)
 
@@ -136,4 +111,4 @@ p <- starting.point.geosse(phy)[aa]
 mle.ge <- find.mle(lik.d, p, method="subplex")
 mle.ge$lnLik
 mle.ge$par
-get_aic(mle.ge$lnLik, 3) # 4049.455
+get_aic(mle.ge$lnLik, 3) # 4413.312

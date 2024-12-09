@@ -38,8 +38,11 @@ where the tree is split into two time epochs, each with its own parameters.
 }
 \details{
 The time epochs start from the root, so the simulation begins with epoch 1 and ends in epoch 2.
-The maximum number of epochs is two.' Note, in ML calculation with make.classe.td(),
+The maximum number of epochs is two.' Note, in the ML calculation with make.classe.td(),
 the epoch order is reversed -- epoch 1 starts at tips.
+
+This function simulates the tree using the code from diversitree:::make.tree.classe() for epoch one defined by
+max.t1. Next, the tree from epoch one is used to simulate the final tree with the code from diversitree:::make.tree.classe() as well.
 
 The simulations are tested only with max.t1 and max.t2 arguments. Use max.taxa at your own risk.
 The argument single.lineage should be always set to TRUE.
