@@ -1,5 +1,7 @@
 
-# ClaSSE.td model created using musse.td from diversitree package
+# Episodic ClaSSE.td model created using musse.td from diversitree package
+
+
 
 # adopted from diversitree:::make.pars.musse.td
 make.pars.classe.td <- function (n.epoch, k)
@@ -125,7 +127,7 @@ make.cache.classe.td <- function (tree, states, k, n.epoch, sampling.f, strict)
 # strict      = TRUE
 # control     = list()
 
-#' Time-dependent ClaSSE model where different time epochs may have different parameters
+#' Episodic ClaSSE model where different time epochs may have different parameters
 #'
 #' @param tree An ultrametric bifurcating phylogenetic tree, in ape “phylo” format.
 #' @param states A vector of character states, from 1 to Inf. This vector must have names that correspond to the tip labels in the phylogenetic tree (tree$tip.label).
@@ -136,6 +138,14 @@ make.cache.classe.td <- function (tree, states, k, n.epoch, sampling.f, strict)
 #' @param control List of control parameters for the ODE solver. See details in diversitree:::make.bisse.
 #'
 #' @return a function
+#' @description
+#' Prepare to run episodic ClaSSE on a phylogenetic tree and character states.
+#' This function creates a likelihood function that can be used in ML or Bayesian inference.
+#'
+#' @details
+#' This functions is based on diversitree::make.musse.td() and diversitree::make.classe().
+#'
+#'
 #' @export
 #'
 #' @examples

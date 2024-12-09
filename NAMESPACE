@@ -2,6 +2,11 @@
 
 export("%>%")
 export(make.classe.td)
+export(make.tree.classe.td)
 export(make_initial_conditions_mine)
+export(pars.geosse2classe)
+export(pars2formula)
 export(report_p)
+export(table2tree)
+export(yaml2vec)
 importFrom(magrittr,"%>%")

@@ -2,7 +2,7 @@
 % Please edit documentation in R/classe_td.R
 \name{make.classe.td}
 \alias{make.classe.td}
-\title{Time-dependent ClaSSE model where different time epochs may have different parameters}
+\title{Episodic ClaSSE model where different time epochs may have different parameters}
 \usage{
 make.classe.td(
   tree,
@@ -33,7 +33,11 @@ make.classe.td(
 a function
 }
 \description{
-Time-dependent ClaSSE model where different time epochs may have different parameters
+Prepare to run episodic ClaSSE on a phylogenetic tree and character states.
+This function creates a likelihood function that can be used in ML or Bayesian inference.
+}
+\details{
+This functions is based on diversitree::make.musse.td() and diversitree::make.classe().
 }
 \examples{
 

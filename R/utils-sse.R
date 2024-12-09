@@ -54,6 +54,8 @@ generateUpperTriangularMatrix_classe <- function(element, N) {
 # generateUpperTriangularMatrix_classe('lam0', 3)
 # generateUpperTriangularMatrix_classe(1, 3)
 
+
+
 vector_to_upper_triangular_matrix <- function(N) {
   # Compute the side length of the matrix
   n <- (-1 + sqrt(1 + 8 * length(N))) / 2
@@ -136,3 +138,19 @@ pars_to_arrays <- function(pars, Nstates, nm=NULL){
 # names(pars) <- argsHiClaSSE2$pars
 # pars
 # pars_to_arrays(pars, Nstates)
+
+get_aic <- function(vec, npar){
+  2*npar - 2*vec
+}
+
+
+# k = 3
+# n.epoch = 2
+starting.point.classe_td <- function(phy, k, n.epoch){
+  start.classe <- diversitree:::starting.point.classe(phy, k)
+  argnames_classe <-  diversitree:::default.argnames.classe(k)
+  argnames.td <-  diversitree:::argnames_twopart(argnames_classe, n.epoch)
+  out <- rep(start.classe, n.epoch)
+  names(out) <- argnames.td
+  out
+}

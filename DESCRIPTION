@@ -1,12 +1,12 @@
 Package: divextra
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Extra Models for Comparative Phylogenetic Analyses of Diversification
 Version: 0.1.0
-Author: Sergei Tarasov
+Author: person("Sergei", "Tarasov", role = c("aut", "cre"), email = "sergei.tarasov@helsinki.fi")
 Maintainer: Sergei Tarasov <sergei.tarasov@helsinki.fi>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: MIT + file LICENSE
+Description: This package is based on and extends functionality from the `diversitree` package (FitzJohn, 2012; Goldberg et al. 2011).
+  It provides additional models and tools for conducting comparative phylogenetic analyses of diversification.
+License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

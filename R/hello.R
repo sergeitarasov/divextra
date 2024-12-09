@@ -31,6 +31,7 @@
 # devtools::check()
 # devtools::build()
 
+# usethis::use_gpl_license(version = 3, include_future = TRUE)
 
 #------ Testing
 # report_p(-1)

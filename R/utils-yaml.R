@@ -217,9 +217,10 @@ make_constraints_sse <- function(par.categories){
 # make_constraints_sse_td(par.categories)
 make_constraints_sse_td <- function(par.categories.td){
   #regions <- yaml$states
+  n.epoch = par.categories.td$n.epoch
   Nstates <- par.categories.td$Nstates
-  pars <- diversitree:::default.argnames.classe(Nstates)
-  pars2formula(par.categories$pars, pars)
+  #pars <- diversitree:::default.argnames.classe(Nstates)
+  #pars2formula(par.categories$pars, pars)
   #------
   argnames_classe <-  diversitree:::default.argnames.classe(Nstates) #length(argnames_classe)
   pars <- diversitree:::argnames_twopart(argnames_classe, n.epoch)
@@ -229,13 +230,13 @@ make_constraints_sse_td <- function(par.categories.td){
   times <- par.categories.td$epoch.times
   parameters <- sprintf("t.%d", seq_len(n.epoch - 1))
     # Create the formulas
-  time_formulas <- mapply(function(param, time) as.formula(paste(param, "~", time)),  parameters, times, SIMPLIFY = FALSE)
+  time_formula <- mapply(function(param, time) as.formula(paste(param, "~", time)),  parameters, times, SIMPLIFY = FALSE)
 
   # other formulas
   existing_formulas <- pars2formula(par.categories.td$pars, pars)
 
   # Append the new formulas to the existing ones
-  all_formulas <- c(existing_formulas, new_formulas)
+  all_formulas <- c(existing_formulas, time_formula)
 
   return(all_formulas)
 
