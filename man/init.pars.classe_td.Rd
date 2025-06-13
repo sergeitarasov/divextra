@@ -4,7 +4,7 @@
 \alias{init.pars.classe_td}
 \title{Creates a starting point for episodic ClaSSE with parameter constrains}
 \usage{
-init.pars.classe_td(lik.const.td, phy, k, n.epoch)
+init.pars.classe_td(lik.const.td, phy, k, n.epoch, eps = 0.5)
 }
 \arguments{
 \item{lik.const.td}{constrained likelihood function}
@@ -14,6 +14,8 @@ init.pars.classe_td(lik.const.td, phy, k, n.epoch)
 \item{k}{number of states}
 
 \item{n.epoch}{number of epochs}
+
+\item{eps}{Ratio of extinction to speciation rates to be used when choosing a starting set of parameters.See diversitree:::starting.point.classe().}
 }
 \value{
 A named vector containing starting parameter values for each time epoch.

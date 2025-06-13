@@ -221,6 +221,7 @@ get_aic <- function(vec, npar){
 # @param phy phylogenetic tree
 # @param k character state count
 # @param n.epoch number of time epochs
+# @param eps Ratio of extinction to speciation rates to be used when choosing a starting set of parameters.See diversitree:::starting.point.classe().
 #
 # @description
 # This function uses diversitree:::starting.point.classe() to create the same
@@ -236,8 +237,8 @@ get_aic <- function(vec, npar){
 # file_path <- system.file("extdata", "geosse_tb_tree.rds", package = "divextra")
 # phy <- readRDS(file_path)
 # starting.point.classe_td(phy, k=3, n.epoch=2)
-starting.point.classe_td <- function(phy, k, n.epoch){
-  start.classe <- diversitree:::starting.point.classe(phy, k)
+starting.point.classe_td <- function(phy, k, n.epoch, eps){
+  start.classe <- diversitree:::starting.point.classe(phy, k, eps = eps)
   argnames_classe <-  diversitree:::default.argnames.classe(k)
   argnames.td <-  diversitree:::argnames_twopart(argnames_classe, n.epoch)
   out <- rep(start.classe, n.epoch)
@@ -252,6 +253,7 @@ starting.point.classe_td <- function(phy, k, n.epoch){
 #' @param phy tree
 #' @param k number of states
 #' @param n.epoch number of epochs
+#' @param eps Ratio of extinction to speciation rates to be used when choosing a starting set of parameters.See diversitree:::starting.point.classe().
 #'
 #' @return A named vector containing starting parameter values for each time epoch.
 #' @export
@@ -266,9 +268,9 @@ starting.point.classe_td <- function(phy, k, n.epoch){
 #' lik.td <-make.classe.td(phy, phy$tip.state, k=3, n.epoch=2, control=list(backend = "gslode"))
 #' lik.const.td <- diversitree:::constrain(lik.td, formulae = formula.td)
 #' starting.point <- init.pars.classe_td(lik.const.td, phy, k=3, n.epoch=2)
-init.pars.classe_td <- function(lik.const.td, phy, k, n.epoch){
+init.pars.classe_td <- function(lik.const.td, phy, k, n.epoch, eps=0.5){
   arg.const.td <- diversitree:::argnames(lik.const.td)
-  init <- starting.point.classe_td(phy, k=k, n.epoch=n.epoch)
+  init <- starting.point.classe_td(phy, k=k, n.epoch=n.epoch, eps=eps)
   starting.point <- init[arg.const.td]
   starting.point
 }
