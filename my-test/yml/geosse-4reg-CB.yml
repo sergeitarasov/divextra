@@ -1,0 +1,48 @@
+# single regions first, 4 states
+states: [A, B, C, A.B, A.C, C.B]
+
+# td model
+n.epoch: 1
+# start of epoch 1, time back from the present
+epoch.times: [10]
+
+#---------------- Epoch 1
+1:
+  # Within-region speciation rates, as sA: A => A + A
+  # Speciation event without dispersal (e.g., sA, sB) corresponding to
+  # lambdas without state changes (e.g, lam_iii)
+  lambda_unit_regions:
+    A: sA
+    B: sB
+    C: sC
+
+  # Speciation events occuring when a lineage is in combined region/state (e.g., sAB)
+  lambda_comb_regions:
+        # [A.B=>(A, B), A.B=>(A, A.B), A.B=>(B, A.B)]
+    A.B:  [s, s, s]
+    A.C:  [s, s, s]
+    C.B:  [s1, s1, s1]
+
+  # Range expansion events (e.g., dA, dB) corresponding to q parameters.
+  #  A → AB
+  Q_dQ:
+        # A.B   A.C      C.B
+    A: [dA,     dA,      dA]
+    B: [0,      0,       dA]
+    C: [0,      dA,      0]
+
+  # Range contraction events (e.g., xA, xB) corresponding to mu parameters
+  mu:
+    A: mA
+    B: mB
+    C: mC
+
+  # Range contraction events (e.g., xA, xB) corresponding to q parameters.
+  Q_xQ:
+           # A       B       C
+    A.B:  [xA,      xA,     0]
+    A.C:  [xA,      0,      xA]
+    C.B:  [xA1,      0,      0]
+
+
+

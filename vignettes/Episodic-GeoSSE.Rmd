@@ -15,6 +15,12 @@ knitr::opts_chunk$set(
 ```
 
 ```{r}
+#library(devtools)
+#install_github("sergeitarasov/divextra")
+```
+
+
+```{r}
 library(divextra)
 ```
 
