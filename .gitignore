@@ -5,7 +5,7 @@
 # Session Data files
 .RData
 .RDataTmp
-divextra.code-workspace
+*.code-workspace
 
 # User-specific files
 .Ruserdata
