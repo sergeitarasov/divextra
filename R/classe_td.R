@@ -49,6 +49,9 @@ make.pars.classe.td <- function (n.epoch, k)
 
 # diversitree:::update.info.td
 # info <- cache$info
+
+#' @method update info.classe_td
+#' @export
 update.info.classe_td <- function (info, k, n.epoch)
 {
   n.epoch <- diversitree:::check.n.epoch(n.epoch)

@@ -56,7 +56,7 @@ Open yaml file in Rstudio
 ## Create ML function and starting values for the parameters
 
 ```{r}
-lik.td <-make.classe.td(phy, phy$tip.state, k=3, n.epoch=2, control=list(backend = "gslode"))
+lik.td <-make.classe.td(phy, phy$tip.state, k=3, n.epoch=2, control=list(backend = "gslode"), strict=T)
 formula.td <- make_constraints_sse_td(par.categories.td)
 lik.const.td <- constrain(lik.td, formulae = formula.td)
 starting.point <- init.pars.classe_td(lik.const.td, phy, k=3, n.epoch=2, eps=0.5)

@@ -1,102 +1,12 @@
-#' Create HTML visualization of ClaSSE/GeoSSE model parameters
-#'
-#' @description
-#' Creates an HTML file with interactive visualization of ClaSSE/GeoSSE model parameters,
-#' including lambda tensors, mu parameters, and Q matrices for each epoch.
-#'
-#' @param par.categories.td List containing model parameters and structure:
-#'   \itemize{
-#'     \item Nstates - number of states
-#'     \item n.epoch - number of epochs
-#'     \item epoch.times - vector of epoch times
-#'     \item states - vector of region names
-#'     \item pars - vector of parameter names
-#'   }
-#' @param model_name Character string. Name of the model (optional)
-#' @param output_file Character string. Path and name for the output HTML file
-#'
-#' @return Invisibly returns the path to the created HTML file
-#'
-#' @details
-#' The function creates an interactive HTML visualization with:
-#'   - Model information summary
-#'   - Lambda tensors for each epoch and region
-#'   - Mu parameters for each epoch
-#'   - Q matrices for each epoch
-#'   - Toggle option to show/hide parameter names
-#'
-#' @importFrom knitr kable
-#' @importFrom kableExtra kable_styling cell_spec row_spec column_spec
-#'
-#' @export
-create_parameter_html <- function(par.categories.td, model_name = NULL, output_file) {
-  # Check if output_file is provided
-  if (missing(output_file) || is.null(output_file)) {
-    stop("output_file must be provided")
-  }
-  
-  # Add .html extension if not present
-  if (!grepl("\\.html$", output_file)) {
-    output_file <- paste0(output_file, ".html")
-  }
-  
-  Nstates <- par.categories.td$Nstates
-  n.epoch <- par.categories.td$n.epoch
-  epoch.times <- par.categories.td$epoch.times
-  regions <-par.categories.td$states
-  Npars <- length(par.categories.td$pars)
-
-#--- preposecess
-  args_list <- pars_yaml_to_arrays_td(par.categories.td)
-
-  # Replace diversitree:::default.argnames.classe with our own implementation
-  generate_parameter_names <- function(Nstates) {
-    # Generate lambda names
-    lambda_names <- vector("character", Nstates * Nstates)
-    idx <- 1
-    for (i in 1:Nstates) {
-      for (j in 1:Nstates) {
-        lambda_names[idx] <- sprintf("lambda%d%d", i, j)
-        idx <- idx + 1
-      }
-    }
-    
-    # Generate mu names
-    mu_names <- paste0("mu", 1:Nstates)
-    
-    # Generate q names
-    q_names <- vector("character", Nstates * (Nstates - 1))
-    idx <- 1
-    for (i in 1:Nstates) {
-      for (j in 1:Nstates) {
-        if (i != j) {
-          q_names[idx] <- sprintf("q%d%d", i, j)
-          idx <- idx + 1
-        }
-      }
-    }
-    
-    c(lambda_names, mu_names, q_names)
-  }
-
-  # genertae parameter names
-  cell_names <- vector("list", length = n.epoch)
-  for (epoch in seq_along(1:n.epoch)){
-    pars <- generate_parameter_names(Nstates)
-    pars <- paste0(pars, '.', epoch)
-    cell_names.i <- pars_to_arrays(pars, Nstates, regions)
-    cell_names[[epoch]] <- cell_names.i
-  }
-
-
-#--- preposecess
-  
+create_parameter_html <- function(args_list, cell_names = NULL, output_file = "model_parameters.html") {
+  library(knitr)
+  library(kableExtra)
 
   html_content <- c(
     "<!DOCTYPE html>",
     "<html>",
     "<head>",
-    sprintf("<title>%s</title>", ifelse(is.null(model_name), "ClaSSE/GeoSSE model (epoch 1 is the most recent)", model_name)),
+    "<title>Model Parameters</title>",
     "<style>",
     "body { font-family: Arial, sans-serif; margin: 20px; }",
     "h1 { color: #2c3e50; }",
@@ -132,27 +42,14 @@ create_parameter_html <- function(par.categories.td, model_name = NULL, output_f
     "        z-index: 1;              /* Ensure coordinates show above background */",
     "    }",
     ".epoch-container {",
-    "    display: flex;",
-    "    justify-content: flex-start;",
-    "    gap: 0;                     /* Remove any gap */",
-    "}",
+    "        display: flex;",
+    "        justify-content: flex-start;  # Changed from space-between to flex-start",
+    "        gap: 5px;                     # Reduced from 10px to 5px",
+    "    }",
     ".epoch {",
-    "    flex: 1;                    /* Each epoch takes equal space */",
-    "    max-width: 50%;            /* Limit width to force closer layout */",
-    "    padding: 0;                /* Remove padding */",
-    "    margin-right: -10px;       /* Negative margin to pull epochs closer */",
-    "}",
-    ".model-info {",
-    "    background-color: #f8f9fa;",
-    "    padding: 15px;",
-    "    border-radius: 5px;",
-    "    margin: 20px 0;",
-    "    border-left: 4px solid #3498db;",
-    "}",
-    ".model-info p {",
-    "    margin: 5px 0;",
-    "    font-family: monospace;",
-    "}",
+    "        flex: 1;",
+    "        padding: 0 2px;              # Reduced from 5px to 2px",
+    "    }",
     "</style>",
     "<script>",
     "function toggleCoordinates() {",
@@ -165,22 +62,7 @@ create_parameter_html <- function(par.categories.td, model_name = NULL, output_f
     "</script>",
     "</head>",
     "<body>",
-    "<h1>ClaSSE/GeoSSE model</h1>",
-    sprintf('<div class="model-info">
-        <h3>%s</h3>
-        <p>Parameter count: %d</p>
-        <p>Number of states: %d</p>
-        <p>Number of epochs: %d</p>
-        <p>Epoch times: %s</p>
-        <p>Regions: %s</p>
-        </div>',
-        ifelse(is.null(model_name), "Unnamed", model_name),
-        Npars,
-        Nstates,
-        n.epoch,
-        paste(epoch.times, collapse = ", "),
-        paste(regions, collapse = ", ")
-    ),
+    "<h1>Model Parameters</h1>",
     "<input type='checkbox' id='showCoords' onclick='toggleCoordinates()'> Show parameter names",
     "<br><br>"
   )
@@ -227,26 +109,28 @@ create_parameter_html <- function(par.categories.td, model_name = NULL, output_f
     list(values = mat, tags = tags)
   }
 
-  # Function to get cell name from the names list for specific epoch
+  # Function to get cell name from the names list
   get_cell_name <- function(mat, i, j, tensor_name = NULL, epoch_cell_names = NULL) {
     if (is.null(epoch_cell_names)) return("")
     
     cell_value <- mat[i,j]
     if (cell_value == "0") return("")
     
-    # Try to find name in the cell_names list for this epoch
+    # Try to find name in the cell_names list
     if (!is.null(tensor_name) && !is.null(epoch_cell_names$lam.tensor[[tensor_name]])) {
       return(epoch_cell_names$lam.tensor[[tensor_name]][i,j])
     } else if (!is.null(epoch_cell_names$Q) && all(dim(mat) == dim(epoch_cell_names$Q))) {
+      # Check for Q matrix by dimensions and structure
       return(epoch_cell_names$Q[i,j])
     } else if (!is.null(epoch_cell_names$mu) && nrow(mat) == 1) {
+      # Check for mu vector by structure (transposed to 1-row matrix)
       return(epoch_cell_names$mu[j])
     }
     return("")
   }
 
-  # Modify create_table_html to handle epoch-specific cell names
-  create_table_html <- function(mat_list, title = NULL, class = NULL, epoch_cell_names = NULL) {
+  # Modify create_table_html function to keep original headers and handle cell names correctly
+  create_table_html <- function(mat_list, title = NULL, class = NULL) {
     n_epochs <- length(mat_list)
     
     # Initialize combined matrix with original column headers
@@ -270,8 +154,12 @@ create_parameter_html <- function(par.categories.td, model_name = NULL, output_f
         epoch <- ceiling(j/ncol(mat_list[[1]]))
         orig_col <- ((j-1) %% ncol(mat_list[[1]])) + 1
         
-        # Use epoch-specific cell names
-        cell_name <- get_cell_name(mat_list[[epoch]], i, orig_col, title, epoch_cell_names[[epoch]])
+        # Get cell name using the correct epoch's cell_names
+        if (!is.null(cell_names) && length(cell_names) >= epoch) {
+          cell_name <- get_cell_name(mat_list[[epoch]], i, orig_col, title, cell_names[[epoch]])
+        } else {
+          cell_name <- get_cell_name(mat_list[[epoch]], i, orig_col, title)
+        }
         
         # Create wrapper with cell name
         wrapper <- sprintf("%s<span class='coordinate'>%s</span>",
@@ -306,16 +194,16 @@ create_parameter_html <- function(par.categories.td, model_name = NULL, output_f
     
     # Create table with all epochs
     if (!is.null(class) && class == "mu-table") {
-      table_html <- knitr::kable(tagged$values, format = "html", escape = FALSE) %>%
-        kableExtra::kable_styling(bootstrap_options = c("hover"),
-                   full_width = FALSE,
-                   position = "left") %>%
-        kableExtra::row_spec(1, background = "white", color = "black")
+      table_html <- kable(tagged$values, format = "html", escape = FALSE) %>%
+        kable_styling(bootstrap_options = c("hover"),
+                     full_width = FALSE,
+                     position = "left") %>%
+        row_spec(1, background = "white", color = "black")
     } else {
-      table_html <- knitr::kable(tagged$values, format = "html", escape = FALSE) %>%
-        kableExtra::kable_styling(bootstrap_options = c("hover"),
-                   full_width = FALSE,
-                   position = "left")
+      table_html <- kable(tagged$values, format = "html", escape = FALSE) %>%
+        kable_styling(bootstrap_options = c("hover"),
+                     full_width = FALSE,
+                     position = "left")
     }
     
     return(table_html)
@@ -336,25 +224,19 @@ create_parameter_html <- function(par.categories.td, model_name = NULL, output_f
       html_content <- c(html_content,
                       paste("<h4>Lambda Tensor", name, "</h4>"),
                       create_table_html(list(args_list[[epoch]]$lam.tensor[[name]]), 
-                                     title = name,
-                                     epoch_cell_names = list(cell_names[[epoch]]))
-      )
+                                     title = name))
     }
     
     # Mu parameters
     html_content <- c(html_content,
                      "<h3>Mu Parameters</h3>",
                      create_table_html(list(t(args_list[[epoch]]$mu)), 
-                                    class = "mu-table",
-                                    epoch_cell_names = list(cell_names[[epoch]]))
-    )
+                                    class = "mu-table"))
     
     # Q matrix
     html_content <- c(html_content,
                      "<h3>Q Matrix</h3>",
-                     create_table_html(list(args_list[[epoch]]$Q),
-                                  epoch_cell_names = list(cell_names[[epoch]]))
-    )
+                     create_table_html(list(args_list[[epoch]]$Q)))
     
     html_content <- c(html_content, "</div>")
   }
@@ -368,4 +250,7 @@ create_parameter_html <- function(par.categories.td, model_name = NULL, output_f
 
   # Write to file
   writeLines(paste(html_content, collapse = "\n"), output_file)
+
+  # Open in browser
+  browseURL(output_file)
 }
