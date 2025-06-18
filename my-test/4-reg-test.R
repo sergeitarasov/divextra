@@ -26,11 +26,19 @@ source('R/html.R')
 #create_parameter_html(par.symbolic.td[[1]])
 par.categories.td <- read_yaml_pars_td("my-test/yml/geosse-4reg-BC.yml")
 par.symbolic.td <- pars_yaml_to_arrays_td(par.categories.td)
-create_parameter_html(par.symbolic.td, cell_names = list(args, args), output_file = "model_parameters1.html")
+#create_parameter_html(par.symbolic.td, cell_names = list(args, args), output_file = "model_parameters1.html")
+create_parameter_html(par.symbolic.td, cell_names = cell_names, output_file = "model_parameters1.html")
 
 source('R/html.R')
+#source('R/html-2.R')
 par.categories.td <- read_yaml_pars_td("my-test/yml/geosse-4reg-BC.yml")
+par.categories.td
 create_parameter_html(par.categories.td, "mode1", output_file = "model_parameters2.html")
+
+par.categories.td <- read_yaml_pars_td("my-test/yml/geosse-4reg-CB.yml")
+par.categories.td
+
+check_zero_in_list(par.categories.td$pars)
 
 
 Nstates <- par.categories.td$Nstates

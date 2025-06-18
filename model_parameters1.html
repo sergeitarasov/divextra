@@ -15,7 +15,7 @@ table.mu-table tr:nth-child(even) td { background-color: #f2f2f2; }
 th { background-color: #3498db; color: white; }
 td {
         position: relative;
-        padding: 4px 8px 16px 8px;
+        padding: 4px 8px 16px 8px;  /* Increased bottom padding */
         line-height: 1.2;
         vertical-align: top;
     }
@@ -31,30 +31,19 @@ td {
         position: absolute;
         bottom: -12px;
         left: 8px;
-        background-color: white;
-        padding: 0 2px;
-        border-radius: 2px;
-        z-index: 1;
+        background-color: white;  /* White background */
+        padding: 0 2px;          /* Small horizontal padding */
+        border-radius: 2px;      /* Rounded corners */
+        z-index: 1;              /* Ensure coordinates show above background */
     }
 .epoch-container {
         display: flex;
-        justify-content: space-between;
-        gap: 10px;
+        justify-content: flex-start;  # Changed from space-between to flex-start
+        gap: 5px;                     # Reduced from 10px to 5px
     }
 .epoch {
         flex: 1;
-        padding: 0 5px;
-    }
-    .model-info {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border-radius: 5px;
-        margin: 20px 0;
-        border-left: 4px solid #3498db;
-    }
-    .model-info p {
-        margin: 5px 0;
-        font-family: monospace;
+        padding: 0 2px;              # Reduced from 5px to 2px
     }
 </style>
 <script>
@@ -68,16 +57,7 @@ function toggleCoordinates() {
 </script>
 </head>
 <body>
-<h1>ClaSSE/GeoSSE model (epoch 1 is the most recent)</h1>
-<h2>Note: the suffix in parameter name  for epoch 2 is displayed inccorrectly (i.e., xxx.1), it should be .2 not .1 (to be fixed later)</h2>
-<div class='model-info'>
-        <h3>mode1</h3>
-        <p>Parameter count: 11</p>
-        <p>Number of states: 6</p>
-        <p>Number of epochs: 2</p>
-        <p>Epoch times: 10</p>
-        <p>Regions: A, B, C, A.B, A.C, B.C</p>
-        </div>
+<h1>Model Parameters</h1>
 <input type='checkbox' id='showCoords' onclick='toggleCoordinates()'> Show parameter names
 <br><br>
 <div class='epoch-container'>
@@ -99,7 +79,7 @@ function toggleCoordinates() {
 <tbody>
   <tr>
    <td style="text-align:left;"> A </td>
-   <td style="text-align:left;"> <span style="     ">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    color: rgba(220, 53, 69, 255) !important;">sA<span class="coordinate">lambda111.1</span></span> </td>
    <td style="text-align:left;"> <span style="     ">0<span class="coordinate"></span></span> </td>
    <td style="text-align:left;"> <span style="     ">0<span class="coordinate"></span></span> </td>
    <td style="text-align:left;"> <span style="     ">0<span class="coordinate"></span></span> </td>
@@ -321,7 +301,7 @@ function toggleCoordinates() {
    <td style="text-align:left;"> <span style="     color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 255) !important;">0<span class="coordinate"></span></span> </td>
    <td style="text-align:left;"> <span style="     ">0<span class="coordinate"></span></span> </td>
    <td style="text-align:left;"> <span style="     ">0<span class="coordinate"></span></span> </td>
-   <td style="text-align:left;"> <span style="     ">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    color: rgba(220, 53, 69, 255) !important;">s<span class="coordinate">lambda424.1</span></span> </td>
    <td style="text-align:left;"> <span style="     ">0<span class="coordinate"></span></span> </td>
    <td style="text-align:left;"> <span style="     ">0<span class="coordinate"></span></span> </td>
   </tr>

@@ -1,4 +1,3 @@
-
 comb2pars <- function(combReg, args){
   lamT <- args$lam.tensor
   parameters <- c()
@@ -135,6 +134,56 @@ read_yaml_pars <-  function(yaml_file){
 }
 
 
+check_zero_in_list <- function(lst) {
+  # Recursive function to check all elements
+  check_element <- function(x) {
+    if (is.list(x)) {
+      # If element is a list, recursively check its elements
+      lapply(x, check_element)
+    } else {
+      # Convert element to character and check for exact "0"
+      if (any(x == "0")) {
+        print(lst)
+        stop("Error: List contains standalone '0' element.\n
+        Revise the order of dual states in yaml.\n
+        Correct:   A, B, C, A.B, A.C,   B.C\n
+        Incorrect: A, B, C, A.B, A.C,   C.B\n")
+      }
+    }
+  }
+
+  # Check all elements in the main list
+  invisible(lapply(lst, check_element))
+
+  # Return TRUE if no standalone zeros found
+  return(TRUE)
+}
+
+
+# check_zero_in_list <- function(lst) {
+#   # Recursive function to check all elements
+#   check_element <- function(x) {
+#     if (is.list(x)) {
+#       # If element is a list, recursively check its elements
+#       lapply(x, check_element)
+#     } else {
+#       # Convert element to character and check for "0"
+#       if (any(grepl("0", as.character(x)))) {
+#         print(lst)
+#         stop("Error: List contains element with '0' character.\n
+#         Revise the order of dual states in yaml.\n
+#         Correct:   A, B, C, A.B, A.C,   B.C\n
+#         Incorrect: A, B, C, A.B, A.C,   C.B\n")
+#       }
+#     }
+#   }
+
+#   # Check all elements in the main list
+#   invisible(lapply(lst, check_element))
+
+#   # Return TRUE if no zeros found
+#   return(TRUE)
+# }
 
 #' Read parameters of episodic GeoSSE model from yaml file
 #'
@@ -208,6 +257,12 @@ read_yaml_pars_td <-  function(yaml_file){
 
   # Assign names to the combined list
   names(combined_list) <- unique(unlist(lapply(grouped_pars, names)))
+
+  # remove zero valued pars: they should be automatically set to 0's in the ln constrain function
+  combined_list$`0` <- NULL
+  # check if any pars are zero values (they should not!
+  # but it may happen if the state oreder is incorrect in yaml)
+  check_zero_in_list(combined_list)
 
   out <- list(Nstates=length(yaml$states), states=yaml$states, n.epoch=n.epoch, epoch.times=epoch.times,  pars=combined_list)
 
@@ -423,4 +478,92 @@ pars2formula <- function(grouped_pars, pars){
   formula.out <- c(formula.zero, formula.multi)
 
   return(formula.out)
+}
+
+
+
+
+
+are_lists_equivalent <- function(list1, list2) {
+  # Helper function to standardize a vector
+  standardize_vector <- function(vec) {
+    if (length(vec) > 0) {
+      return(paste(sort(vec), collapse = "|"))
+    }
+    return("")
+  }
+
+  # Convert each vector to a sorted string representation
+  strings1 <- sapply(list1, standardize_vector)
+  strings2 <- sapply(list2, standardize_vector)
+
+  # Sort the string representations
+  strings1 <- sort(strings1)
+  strings2 <- sort(strings2)
+
+  # Compare the sorted strings
+  return(identical(strings1, strings2))
+}
+
+# Example usage:
+# l1 <- list(c("a1", "bc", "cwe"), c("a"))
+# l2 <- list(c("a"), c("bc", "a1", "cwe"))
+# are_lists_equivalent(l1, l2)  # Returns TRUE
+#
+# l3 <- list(c("a1", "bc", "cwe"), c("a", "d"))
+# are_lists_equivalent(l1, l3)  # Returns FALSE
+
+# Function to remove elements containing "t." from a list
+remove_t_elements <- function(lst) {
+  # Find which elements contain "t."
+  has_t <- sapply(lst, function(x) any(grepl("t\\.", x)))
+
+  # Return list without those elements
+  lst[!has_t]
+}
+
+# Example usage:
+# my_list <- list(
+#   "0.655" = c("mu01.1", "mu02.1"),
+#   "0.703" = c("lambda010101.1", "lambda020202.1"),
+#   "10" = c("t.1")
+# )
+# cleaned_list <- remove_t_elements(my_list)
+
+
+
+
+#' Check consistency between diversitree and yaml parameter groups
+#'
+#' @description
+#' Compares parameter groupings from diversitree MLE results with parameter groups defined in yaml configuration.
+#' Removes zero-valued parameters and timing parameters before comparison.
+#'
+#' @param par.diversitree List of parameter groups from diversitree MLE results
+#' @param par.yaml List of parameter groups from yaml configuration
+#'
+#' @return Logical. TRUE if parameter groupings are equivalent, FALSE otherwise
+#' @export
+#'
+#' @details
+#' The function performs the following steps:
+#' 1. Removes zero-valued parameters ('0' group)
+#' 2. Removes timing parameters (containing 't.')
+#' 3. Removes list names for comparison
+#' 4. Checks if remaining parameter groups are equivalent regardless of order
+#'
+#' @examples
+#' \dontrun{
+#' par.categories.td <- read_yaml_pars_td("yml/geosse.yml")
+#' mle.td <- find.mle(lik.const.td, starting.point, condition.surv=TRUE)
+#' mle.pars.groups <- pars2groups(mle.td$par.full)
+#' check_parametrization_consistency(mle.pars.groups, par.categories.td$pars)
+#' }
+check_parametrization_consistency <- function(par.diversitree, par.yaml){
+  par.diversitree$'0' <- NULL
+  par.diversitree <- remove_t_elements(par.diversitree)
+  names(par.diversitree)<-NULL
+  names(par.yaml) <- NULL
+
+  are_lists_equivalent(par.diversitree, par.yaml)
 }

@@ -1,6 +1,39 @@
-create_parameter_html <- function(args_list, cell_names = NULL, output_file = "model_parameters.html") {
-  library(knitr)
-  library(kableExtra)
+#create_parameter_html <- function(args_list, cell_names = NULL, output_file = "model_parameters.html") {
+create_parameter_html <- function(par.categories.td, model_name = NULL, output_file) {
+  # library(knitr)
+  # library(kableExtra)
+
+    # Check if output_file is provided
+  if (missing(output_file) || is.null(output_file)) {
+    stop("output_file must be provided")
+  }
+  
+  # Add .html extension if not present
+  if (!grepl("\\.html$", output_file)) {
+    output_file <- paste0(output_file, ".html")
+  }
+  
+  Npars <- length(par.categories.td$pars)
+  Nstates <- par.categories.td$Nstates
+  n.epoch <- par.categories.td$n.epoch
+  epoch.times <- par.categories.td$epoch.times
+  regions <-par.categories.td$states
+  
+
+  #--- preposecess
+  args_list <- pars_yaml_to_arrays_td(par.categories.td)
+
+  # genertae parameter names
+  cell_names <- vector("list", length = n.epoch)
+  for (epoch in seq_along(1:n.epoch)){
+    pars <- diversitree:::default.argnames.classe(Nstates)
+    pars <- paste0(pars, '.', epoch)
+    cell_names.i <- pars_to_arrays(pars, Nstates, regions)
+    cell_names[[epoch]] <- cell_names.i
+  }
+
+
+  #--- preposecess
 
   html_content <- c(
     "<!DOCTYPE html>",
@@ -20,7 +53,7 @@ create_parameter_html <- function(args_list, cell_names = NULL, output_file = "m
     "th { background-color: #3498db; color: white; }",
     "td {",
     "        position: relative;",
-    "        padding: 4px 8px 16px 8px;  /* Increased bottom padding */",
+    "        padding: 4px 8px 16px 8px;",
     "        line-height: 1.2;",
     "        vertical-align: top;",
     "    }",
@@ -36,19 +69,30 @@ create_parameter_html <- function(args_list, cell_names = NULL, output_file = "m
     "        position: absolute;",
     "        bottom: -12px;",
     "        left: 8px;",
-    "        background-color: white;  /* White background */",
-    "        padding: 0 2px;          /* Small horizontal padding */",
-    "        border-radius: 2px;      /* Rounded corners */",
-    "        z-index: 1;              /* Ensure coordinates show above background */",
+    "        background-color: white;",
+    "        padding: 0 2px;",
+    "        border-radius: 2px;",
+    "        z-index: 1;",
     "    }",
     ".epoch-container {",
     "        display: flex;",
-    "        justify-content: flex-start;  # Changed from space-between to flex-start",
-    "        gap: 5px;                     # Reduced from 10px to 5px",
+    "        justify-content: space-between;",
+    "        gap: 10px;",
     "    }",
     ".epoch {",
     "        flex: 1;",
-    "        padding: 0 2px;              # Reduced from 5px to 2px",
+    "        padding: 0 5px;",
+    "    }",
+    "    .model-info {",
+    "        background-color: #f8f9fa;",
+    "        padding: 15px;",
+    "        border-radius: 5px;",
+    "        margin: 20px 0;",
+    "        border-left: 4px solid #3498db;",
+    "    }",
+    "    .model-info p {",
+    "        margin: 5px 0;",
+    "        font-family: monospace;",
     "    }",
     "</style>",
     "<script>",
@@ -62,7 +106,15 @@ create_parameter_html <- function(args_list, cell_names = NULL, output_file = "m
     "</script>",
     "</head>",
     "<body>",
-    "<h1>Model Parameters</h1>",
+    "<h1>ClaSSE/GeoSSE model (epoch 1 is the most recent)</h1>",
+    "<div class='model-info'>",
+    sprintf("        <h3>%s</h3>", if(!is.null(model_name)) model_name else ""),
+    sprintf("        <p>Parameter count: %d</p>", Npars),
+    sprintf("        <p>Number of states: %d</p>", Nstates),
+    sprintf("        <p>Number of epochs: %d</p>", n.epoch),
+    sprintf("        <p>Epoch times: %s</p>", paste(epoch.times, collapse=", ")),
+    sprintf("        <p>Regions: %s</p>", paste(regions, collapse=", ")),
+    "        </div>",
     "<input type='checkbox' id='showCoords' onclick='toggleCoordinates()'> Show parameter names",
     "<br><br>"
   )
@@ -116,15 +168,12 @@ create_parameter_html <- function(args_list, cell_names = NULL, output_file = "m
     cell_value <- mat[i,j]
     if (cell_value == "0") return("")
     
-    # Try to find name in the cell_names list
     if (!is.null(tensor_name) && !is.null(epoch_cell_names$lam.tensor[[tensor_name]])) {
-      return(epoch_cell_names$lam.tensor[[tensor_name]][i,j])
+        return(epoch_cell_names$lam.tensor[[tensor_name]][i,j])
     } else if (!is.null(epoch_cell_names$Q) && all(dim(mat) == dim(epoch_cell_names$Q))) {
-      # Check for Q matrix by dimensions and structure
-      return(epoch_cell_names$Q[i,j])
+        return(epoch_cell_names$Q[i,j])
     } else if (!is.null(epoch_cell_names$mu) && nrow(mat) == 1) {
-      # Check for mu vector by structure (transposed to 1-row matrix)
-      return(epoch_cell_names$mu[j])
+        return(epoch_cell_names$mu[j])
     }
     return("")
   }
@@ -252,5 +301,5 @@ create_parameter_html <- function(args_list, cell_names = NULL, output_file = "m
   writeLines(paste(html_content, collapse = "\n"), output_file)
 
   # Open in browser
-  browseURL(output_file)
+  #browseURL(output_file)
 }

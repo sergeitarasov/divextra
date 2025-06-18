@@ -64,13 +64,12 @@ create_parameter_html <- function(par.categories.td, model_name = NULL, output_f
 
   # genertae parameter names
   cell_names <- vector("list", length = n.epoch)
-  for (epoch in 1:n.epoch) {
+  for (epoch in seq_along(1:n.epoch)){
     pars <- diversitree:::default.argnames.classe(Nstates)
-    pars <- paste0(pars, '.', epoch)  # Use actual epoch number
+    pars <- paste0(pars, '.', epoch)
     cell_names.i <- pars_to_arrays(pars, Nstates, regions)
     cell_names[[epoch]] <- cell_names.i
   }
-  # print(cell_names)
 
 
   #--- preposecess
@@ -147,7 +146,6 @@ create_parameter_html <- function(par.categories.td, model_name = NULL, output_f
     "</head>",
     "<body>",
     "<h1>ClaSSE/GeoSSE model (epoch 1 is the most recent)</h1>",
-    "<h2>Note: the suffix in parameter name  for epoch 2 is displayed inccorrectly (i.e., xxx.1), it should be .2 not .1 (to be fixed later)</h2>",
     "<div class='model-info'>",
     sprintf("        <h3>%s</h3>", if(!is.null(model_name)) model_name else ""),
     sprintf("        <p>Parameter count: %d</p>", Npars),
@@ -203,8 +201,7 @@ create_parameter_html <- function(par.categories.td, model_name = NULL, output_f
   }
 
   # Function to get cell name from the names list
-  # Simplified get_cell_name function that uses existing cell_names
-  get_cell_name <- function(mat, i, j, tensor_name = NULL, epoch_cell_names = NULL, epoch = NULL) {
+  get_cell_name <- function(mat, i, j, tensor_name = NULL, epoch_cell_names = NULL) {
     if (is.null(epoch_cell_names)) return("")
     
     cell_value <- mat[i,j]
@@ -246,26 +243,16 @@ create_parameter_html <- function(par.categories.td, model_name = NULL, output_f
     
     for(i in 1:nrow(combined_mat)) {
       for(j in 1:ncol(combined_mat)) {
+        # Get cell name for the corresponding epoch
         epoch <- ceiling(j/ncol(mat_list[[1]]))
         orig_col <- ((j-1) %% ncol(mat_list[[1]])) + 1
         
-        # Get current epoch's cell names
-        current_cell_names <- cell_names[[epoch]]
-        
-        # Get cell name for current position and epoch
-        if (!is.null(title) && !is.null(current_cell_names$lam.tensor[[title]])) {
-          cell_name <- current_cell_names$lam.tensor[[title]][i,orig_col]
-        } else if (!is.null(current_cell_names$Q) && 
-                   all(dim(mat_list[[epoch]]) == dim(current_cell_names$Q))) {
-          cell_name <- current_cell_names$Q[i,orig_col]
-        } else if (!is.null(current_cell_names$mu) && nrow(mat_list[[epoch]]) == 1) {
-          cell_name <- current_cell_names$mu[orig_col]
+        # Get cell name using the correct epoch's cell_names
+        if (!is.null(cell_names) && length(cell_names) >= epoch) {
+          cell_name <- get_cell_name(mat_list[[epoch]], i, orig_col, title, cell_names[[epoch]])
         } else {
-          cell_name <- ""
+          cell_name <- get_cell_name(mat_list[[epoch]], i, orig_col, title)
         }
-        
-        # Skip empty cells
-        if (combined_mat[i,j] == "0") cell_name <- ""
         
         # Create wrapper with cell name
         wrapper <- sprintf("%s<span class='coordinate'>%s</span>",

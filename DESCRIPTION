@@ -15,12 +15,12 @@ Depends:
     R (>= 4.3.1),
     ape,
     diversitree (>= 0.9-20),
-    yaml
-Imports: 
-    magrittr,
-    stringr,
+    yaml,
     knitr,
     kableExtra
+Imports: 
+    magrittr,
+    stringr
 Suggests: 
     rmarkdown,
     testthat (>= 3.0.0)
