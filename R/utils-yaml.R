@@ -567,3 +567,174 @@ check_parametrization_consistency <- function(par.diversitree, par.yaml){
 
   are_lists_equivalent(par.diversitree, par.yaml)
 }
+
+
+#' Print Zero Matrix in YAML Format
+#'
+#' @description
+#' Prints an NxK matrix of zeros in a YAML-friendly format with consistent spacing and comma separators.
+#'
+#' @param N Integer. Number of rows in the matrix
+#' @param K Integer. Number of columns in the matrix
+#'
+#' @return None (invisible). Prints matrix to console using cat()
+#' @export
+#'
+#' @details
+#' Creates a matrix where:
+#' - Each row is enclosed in square brackets
+#' - Elements are separated by commas and consistent spacing
+#' - All elements are zeros
+#' - No trailing comma after last element
+#' - No trailing newline after last row
+#'
+#' @examples
+#' # Print 3x4 zero matrix
+#' print_yaml_matrix(3, 4)
+#' 
+#' # Print 2x2 zero matrix
+#' print_yaml_matrix(2, 2)
+print_yaml_matrix <- function(N, K) {
+  # Create empty matrix string
+  matrix_str <- ""
+  
+  # Loop through rows
+  for(i in 1:N) {
+    # Start row with "["
+    row_str <- "["
+    
+    # Add elements with proper spacing
+    for(j in 1:K) {
+      if(j == K) {
+        # Last element has no trailing comma
+        row_str <- paste0(row_str, "0")
+      } else {
+        # Add element with comma and spacing
+        row_str <- paste0(row_str, "0,      ")
+      }
+    }
+    
+    # Close row with "]" and newline
+    if(i == N) {
+      # Last row has no newline
+      row_str <- paste0(row_str, "]")
+    } else {
+      row_str <- paste0(row_str, "]\n")
+    }
+    
+    # Add row to matrix string
+    matrix_str <- paste0(matrix_str, row_str)
+  }
+  
+  # Print the matrix
+  cat(matrix_str)
+}
+
+
+
+#' Regroup Parameters According to New Groups
+#'
+#' @description
+#' Takes original parameter grouping and creates new parameter groups based on provided grouping scheme.
+#' Checks that new groups don't have overlapping parameters.
+#'
+#' @param yaml_pars List of original parameter groupings
+#' @param new_groups List of vectors containing group names to combine
+#'
+#' @return List of new parameter groupings
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Original parameter groups from model
+#' orig_pars <- list(pars =list(
+#'   dAE = c("q0107.1", "q0107.2"),
+#'   dAM = c("q0108.1", "q0108.2"),
+#'   scA = c("lambda070102.1", "lambda070102.2"),
+#'   scE = c("lambda120203.1", "lambda120203.2")
+#' )
+#' )
+#' 
+#' # New grouping scheme
+#' new_groups <- list(
+#'   c("dAE", "dAM"),
+#'   c("scA", "scE")
+#' )
+#' 
+#' regroup_parameters(orig_pars, new_groups)
+#' }
+regroup_parameters <- function(yaml_pars, new_groups) {
+  orig_pars <- yaml_pars$pars
+  
+  # Check for overlapping groups
+  all_groups <- unlist(new_groups)
+  if (length(all_groups) != length(unique(all_groups))) {
+    stop("Error: Groups in new_groups overlap!")
+  }
+  
+  # Check if all elements sets in new groups are present in the original pars
+  unchanged_groups <- setdiff(names(orig_pars), all_groups)
+  if (length(unchanged_groups) > 0) {
+    stop("Error: new_groups and yaml_pars are not consistent!")
+  }
+  
+  # Initialize output list
+  result <- list()
+  
+  # Process each new group
+  for (group in new_groups) {
+    # print
+    # Get first name in group as new group name
+    new_group_name <- group[1]
+    
+    # Combine parameters from all subgroups
+    combined_pars <- unlist(orig_pars[group])
+    
+    # Add to result list
+    result[[new_group_name]] <- combined_pars
+  }
+  
+  # Keep any original groups not mentioned in new_groups
+  # unchanged_groups <- setdiff(names(orig_pars), unlist(new_groups))
+  # if (length(unchanged_groups) > 0) {
+  #   result <- c(result, orig_pars[unchanged_groups])
+  # }
+  
+  # Wrap in list with 'pars' name
+  yaml_pars$pars <- result
+  return(yaml_pars)
+}
+
+
+#' Read Parameter Groups from YAML File
+#'
+#' @description
+#' Reads multiple named lists of parameter groups from a YAML file.
+#' Each list in the YAML file becomes a separate named element in the returned list.
+#'
+#' @param yaml_file Path to YAML file containing parameter groups
+#'
+#' @return List of parameter group lists, each named according to YAML structure
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Read parameter groups from YAML file
+#' groups <- read_par_groups_yaml("parameter_groups.yml")
+#' 
+#' # Access specific group lists
+#' groups$parameter_groups    # First group list
+#' groups$parameter_groups2   # Second group list
+#' }
+read_par_groups_yaml <- function(yaml_file) {
+  # Read YAML file
+  yaml_content <- yaml::yaml.load_file(yaml_file)
+  
+  # Process each named list in the YAML content
+  result <- lapply(yaml_content, function(group_list) {
+    # Convert each group to character vector
+    lapply(group_list, as.character)
+  })
+  
+  return(result)
+}
