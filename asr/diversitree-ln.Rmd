@@ -1,0 +1,256 @@
+---
+title: "Diversitree_Likelihood"
+author: "Sergei Tarasov"
+date: "2025-06-26"
+output: html_document
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r}
+library(diversitree)
+library(plyr)
+library(expm)
+```
+
+
+# Mk Model
+
+```{r}
+# Read in tree and Plot
+phy <- readRDS('asr/tree.rds')
+cols <- mapvalues(phy$tip.state, from = c(0, 1), to=c("grey", 'black'))
+plot(phy, label.offset = 2, cex=1, no.margin = F)
+tiplabels(pch = 15, col = cols, cex = 2, adj = 1.5)
+nodelabels()
+tiplabels()
+edgelabels()
+axisPhylo()
+```
+
+
+
+```{r}
+# define Ln function 
+lik.mk <- make.mk2(phy, phy$tip.state, strict=T)
+# estimate Ln given pars
+pars.mk <- c(.1, .2)
+lik.mk.est <- lik.mk(pars.mk, root=ROOT.FLAT, intermediates = T)
+print(lik.mk.est)
+```
+
+## Definitions of lik.mk() object
+
+- **`init`**: Variable values at the **tip** of each branch. Note: it seems like there a bug for tips printing NAs. The computations do work. When Probs of two sister branches are combined at a node, it's an init variable of a downstream brahnch
+
+- **`base`**: Variable values at the **base** of each branch. Note: they are normalized, see below.
+
+- **`lq`**: The **compensation factor** for each branch.  
+  Recall that the compensation factor is the **log of the sum** of the variables at the base of each branch.
+
+- **`pij`**: Are present only in Mk model. They are direct probs after exponentiation.
+
+- **`root.p`**: is the root prior.
+
+- **`vals`**: is the variables at the root node, they are the same **`init`** for node 6.
+
+
+## Manual calculations
+
+### Along branches
+
+Let's consider sp8 and sp7 tips (branches 4 and 5) and go downstream to see how it works.
+
+```{r}
+Q <- matrix(c(-0.1,0.1,
+              0.2, -0.2), 2, 2, byrow=T)
+print(Q)
+
+# branch length
+br5 <- phy$edge.length[5]
+# Probability
+P5 <- expm(Q*br5) %*% c(0,1)
+# compensation factor for branch 5
+lq5 <- log(sum(P5))
+# Normalized Probs at the base of the branch 5
+base5 <- P5/sum(P5)
+
+print(lq5)
+print(base5)
+
+print(attr(lik.mk.est, "intermediates")$lq[5])
+print(attr(lik.mk.est, "intermediates")$base[,5])
+
+# Note, the following vars are equal
+log(P5) == log(base5) + lq5
+
+
+```
+
+Branch 4.
+
+```{r}
+br4 <- phy$edge.length[4]
+P4 <- expm(Q*br4) %*% c(1,0)
+lq4 <- log(sum(P4))
+base4 <- P4/sum(P4)
+
+print(lq4)
+print(base4)
+
+print(attr(lik.mk.est, "intermediates")$lq[4])
+print(attr(lik.mk.est, "intermediates")$base[,4])
+```
+
+Branch 9: the ancestor of Branch 4 and Branch 5.
+
+```{r}
+
+# init array for branch 9: combining two bases
+init9 <- base5*base4
+
+# branch 9 length: note id differs from ape
+br9 <- phy$edge.length[3]
+# Now Probs are condition on init9, note it's normalized
+P9 <- expm(Q*br9) %*% init9
+lq9 <- log(sum(P9))
+base9 <- P9/sum(P9)
+
+print(init9)
+print(lq9)
+print(base9)
+
+print(attr(lik.mk.est, "intermediates")$init[,9])
+print(attr(lik.mk.est, "intermediates")$lq[9])
+print(attr(lik.mk.est, "intermediates")$base[,9])
+
+```
+
+### At the root
+
+```{r}
+
+# Root vals at node 6.
+root.vals <- attr(lik.mk.est, "intermediates")$vals
+root.pi <- c(0.5, 0.5)
+LQ <- attr(lik.mk.est, "intermediates")$lq
+
+# Likelihood Manual
+log(sum(root.vals * root.pi)) + sum(LQ)
+
+# Likelihood diversitree
+print(lik.mk.est[1])
+
+
+```
+
+
+
+# BiSSE Model
+
+```{r}
+# Read in tree and Plot
+phy <- readRDS('asr/tree.rds')
+cols <- mapvalues(phy$tip.state, from = c(0, 1), to=c("grey", 'black'))
+plot(phy, label.offset = 2, cex=1, no.margin = F)
+tiplabels(pch = 15, col = cols, cex = 2, adj = 1.5)
+nodelabels()
+tiplabels()
+edgelabels()
+axisPhylo()
+```
+
+## Make Ln functions
+
+```{r}
+lik <- make.bisse(phy, phy$tip.state)
+pars <- c(.1, .2, .03, .06, .01, .02)
+lik.est <- lik(pars, root=ROOT.FLAT, intermediates=T)
+print(lik.est)
+```
+
+Now, extracting various functions for Ln estimation from lik().
+
+```{r}
+e <- environment(lik)
+# Ln for all branches f
+all_branches <- e$all_branches
+# root f
+rootfunc <- e$rootfunc
+
+
+eb <- environment(e$all_branches)
+# Ln along single branch f
+branches <- eb$branches
+# Ln at a node f
+initial.conditions <- eb$initial.conditions
+```
+
+### branches() and initial.conditions()
+
+1. branches(): along a branch 
+
+2. initial.conditions(): at node
+
+```{r}
+
+#------ branches (y, len, pars, t0, idx)
+#
+# in do.asr.marginal.R():
+# branches(y.in, len[i], pars, depth[i], i)
+# for depth[i], i, I herein use zeros but it may differ in td models
+
+# Branch 5, sp8 (black)
+br5 <- phy$edge.length[5]
+y5 <- c(0,0,0, 1)
+base5.raw <- branches(y5, br5, pars, 0, 0)
+
+# first is lq, second is base
+print(base5.raw)
+attr(lik.est, "intermediates")$lq[5]
+attr(lik.est, "intermediates")$base[,5]
+
+# Branch 4, sp7 (white)
+br4 <- phy$edge.length[4]
+y4 <- c(0,0, 1,0)
+base4.raw <- branches(y4, br4, pars, 0, 0)
+print(base4.raw)
+
+
+#------ initial.conditions(init, pars, t, idx)
+#
+# in do.asr.marginal.R(): 
+# initial.conditions(branch.base[,children[j,]],  pars, depth[j], j)
+
+# At node 9
+base4_5 <- cbind(base4.raw[[2]], base5.raw[[2]])
+init9 <- initial.conditions(base4_5, pars, 0, 0)
+
+print(init9)
+attr(lik.est, "intermediates")$init[,9]
+```
+
+
+### At root
+
+```{r}
+#
+# rootfunc(res, pars, condition.surv, root, root.p, intermediates)
+vals <- attr(lik.est, "intermediates")$vals
+LQ <- attr(lik.est, "intermediates")$lq
+res <- list(vals=vals, lq=LQ)
+
+Ln <- rootfunc(res, pars, condition.surv=T, root=ROOT.FLAT, root.p=NULL, intermediates=F)
+
+print(Ln)
+print(lik.est[[1]])
+
+```
+
+
+
