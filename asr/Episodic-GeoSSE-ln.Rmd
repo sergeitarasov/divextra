@@ -5,26 +5,122 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+#library(devtools)
+#install_github("sergeitarasov/divextra")
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+library(divextra)
+library(plyr)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+
+# Read in tree and Plot
+phy <- readRDS('asr/tree.rds')
+cols <- mapvalues(phy$tip.state_3, from = c(1:3), to=c('black', "blue","red" ))
+plot(phy, label.offset = 2, cex=1, no.margin = F)
+tiplabels(pch = 15, col = cols, cex = 2, adj = 1.5)
+nodelabels()
+tiplabels()
+edgelabels()
+axisPhylo()
+
+```
+
+
+
+# Episodic GeoSSE whith two epochs having different lambda parameters
+
+
+```{r}
+lik.td <-make.classe.td(phy, phy$tip.state_3, k=3, n.epoch=2, control=list(backend = "gslode"), strict=T)
+
+par.td <- c(4, c(1:54)/100)
+names(par.td) <- diversitree::argnames(lik.td)
+lik.est <- lik.td(par.td, root=ROOT.FLAT, intermediates=T)
+print(lik.est)
+
+```
+
+Now, extracting various functions for Ln estimation from lik().
+
+```{r}
+e <- environment(lik.td)
+# Ln for all branches f
+all_branches <- e$all_branches
+# root f
+rootfunc <- e$rootfunc
+
+
+eb <- environment(e$all_branches)
+# Ln along single branch f
+branches <- eb$branches.td
+# Ln at a node f
+#ff <- diversitree:::make.initial.conditions.classe(3)
+#initial.conditions <- eb$initial.conditions
+initial.conditions.td <- eb$initial.conditions.td
+
+#----
+#e$f.pars
+```
+
+
+```{r}
+#------ branches (y, len, pars, t0, idx) 
+#
+# in do.asr.marginal.R():
+# branches(y.in, len[i], pars, depth[i], i)
+# !!!
+# for depth[i] is important for td models
+# i is not.
+
+# make parameters
+f.pars <- divextra:::make.pars.classe.td(n=2, k=3)
+par <- f.pars(par.td)
+
+# Branch 3(6), sp6 (red, state #3)
+br3 <- phy$edge.length[6]
+y3 <- c(0,0,0, 0,0,1)
+
+# !!! branch depth matters here. it's 0 cuz it's terminal
+base3.raw <- branches(y3, br3, par, 0, 100)
+base3.raw
+
+#--------- intial conditions at node 8
+
+# initial.conditions(init, pars, t, is.root = FALSE) 
+base3_9 <- cbind(attr(lik.est, "intermediates")$base[,3], attr(lik.est, "intermediates")$base[,9])
+
+init8 <- initial.conditions.td(base3_9, par, br3)
+init8
+```
+
+## At the root
+
+```{r}
+
+vals <- attr(lik.est, "intermediates")$vals
+LQ <- attr(lik.est, "intermediates")$lq
+res <- list(vals=vals, lq=LQ)
+
+Ln <- rootfunc(res, par, condition.surv=T, root=ROOT.FLAT, root.p=NULL, intermediates=F)
+Ln
+
+# Likelihood diversitree
+print(lik.est[1])
+
+```
+
+
+

@@ -86,3 +86,25 @@ Examine the parameter estimates.
 pars2groups(mle.td$par.full)
 ```
 
+## ASR
+
+```{r}
+#asrm <- make.asr.marginal.classe(lik.td)
+st <- make.asr.marginal.classe(lik.td)(mle.td$par.full)
+#st
+round(st, 2)
+round(st[,1:10], 2)
+str(st)
+```
+
+```{r}
+library(plyr)
+
+cols <- mapvalues(phy$tip.state, from = c(1:3), to=c('orange', "green","red" ))
+plot(phy, show.tip.label = F, cex=1, no.margin = F)
+tiplabels(pch = 15, col = cols, cex = .5, adj = 1)
+nodelabels(thermo=t(st), piecol=c('orange', "green","red" ), cex=.3, adj=0)
+
+```
+
+

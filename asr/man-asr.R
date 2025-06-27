@@ -5,6 +5,10 @@ library(plyr)
 # phy <- trees(pars, "bisse", max.taxa=5, max.t=Inf, x0=0)[[1]]
 # phy$tip.state <- c(1,1, 0,0,1)
 # names(phy$tip.state) <- phy$tip.label
+#
+# phy$tip.state_3 <- c(1,1, 3,2,1)
+# names(phy$tip.state_3 ) <- phy$tip.label
+#
 # saveRDS(phy, 'asr/tree.rds')
 phy <- readRDS('asr/tree.rds')
 
@@ -38,6 +42,18 @@ diversitree:::make.asr.marginal.bisse(lik)(pars)
 
 #-------------------
 
+library(plyr)
 
+cols <- mapvalues(phy$tip.state, from = c(1:3), to=c('orange', "green","red" ))
+plot(phy, show.tip.label = F, cex=1, no.margin = F)
+tiplabels(pch = 15, col = cols, cex = .5, adj = 1)
+nodelabels(thermo=t(st), piecol=c('orange', "green","red" ), cex=.3, adj=0)
+
+#plot(phy, label.offset = 2, cex=1, no.margin = F)
+
+nodelabels()
+tiplabels()
+edgelabels()
+axisPhylo()
 
 
