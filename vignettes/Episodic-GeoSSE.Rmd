@@ -92,9 +92,9 @@ pars2groups(mle.td$par.full)
 #asrm <- make.asr.marginal.classe(lik.td)
 st <- make.asr.marginal.classe(lik.td)(mle.td$par.full)
 #st
-round(st, 2)
+#round(st, 2)
 round(st[,1:10], 2)
-str(st)
+#str(st)
 ```
 
 ```{r}
