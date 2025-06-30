@@ -24,7 +24,7 @@ make.do.asr.marginal_divextra <- function(all_branches, rootfunc)
 }
 
 
-
+#' @export
 make.asr.marginal.classe <- function (lik, ...)
 {
   e <- environment(lik)
@@ -40,7 +40,7 @@ make.asr.marginal.classe <- function (lik, ...)
 }
 
 
-#' Ancestral State Reconstruction for Classe Models
+#' Ancestral State Reconstruction for ClaSSE/GeoSSE Models
 #'
 #' Perform marginal ancestral state reconstruction for classe models. This function
 #' computes the marginal probability of each state at ancestral nodes given the
@@ -73,17 +73,18 @@ make.asr.marginal.classe <- function (lik, ...)
 #' #------- Toy dataset, parameters given
 #' data(phy5)
 #' cols <- plyr::mapvalues(phy5$tip.state_3, from = c(1:3), to=c('black', "blue","red" ))
-#' plot(phy5, label.offset = 2, cex=1, no.margin = F)
+#' plot(phy5, label.offset = 2, cex=1, no.margin = FALSE)
 #' tiplabels(pch = 15, col = cols, cex = 2, adj = 1.5)
 #' nodelabels()
 #' tiplabels()
 #' edgelabels()
 #' axisPhylo()
 #'
-#' lik.td <-make.classe.td(phy5, phy5$tip.state_3, k=3, n.epoch=2, control=list(backend = "gslode"), strict=T)
+#' lik.td <-make.classe.td(phy5, phy5$tip.state_3, k=3, n.epoch=2, control=list(backend = "gslode"),
+#'  strict=TRUE)
 #' par.td <- c(4, c(1:54)/100)
 #' names(par.td) <- diversitree::argnames(lik.td)
-#' lik.est <- lik.td(par.td, intermediates=T)
+#' lik.est <- lik.td(par.td, intermediates=TRUE)
 #' print(lik.est)
 #'
 #' st <-  asr.marginal.classe(lik.td, par.td)
@@ -101,18 +102,19 @@ make.asr.marginal.classe <- function (lik, ...)
 #' # display
 #' print(par.categories.td)
 #'
-#' lik.td <-make.classe.td(phy, phy$tip.state, k=3, n.epoch=2, control=list(backend = "gslode"), strict=T)
+#' lik.td <-make.classe.td(phy, phy$tip.state, k=3, n.epoch=2, control=list(backend = "gslode"),
+#'  strict=TRUE)
 #' formula.td <- make_constraints_sse_td(par.categories.td)
 #' lik.const.td <- constrain(lik.td, formulae = formula.td)
 #' starting.point <- init.pars.classe_td(lik.const.td, phy, k=3, n.epoch=2, eps=0.5)
 #' print(starting.point)
 #'
-#' mle.td <- find.mle(lik.const.td, starting.point, condition.surv=TRUE, keep.func=F)
+#' mle.td <- find.mle(lik.const.td, starting.point, condition.surv=TRUE, keep.func=FALSE)
 #'
 #' st <- asr.marginal.classe(lik.td, mle.td$par.full)
 #'
 #' cols <- plyr::mapvalues(phy$tip.state, from = c(1:3), to=c('orange', "green","red" ))
-#' plot(phy, show.tip.label = F, cex=1, no.margin = F)
+#' plot(phy, show.tip.label = FALSE, cex=1, no.margin = FALSE)
 #' tiplabels(pch = 15, col = cols, cex = .5, adj = 1)
 #' nodelabels(thermo=t(st), piecol=c('orange', "green","red" ), cex=.3, adj=0)
 #' }
@@ -162,6 +164,7 @@ do.asr.marginal.R_branch <- function(pars, cache, res, nodes, states.idx,
     # current branch index: index=9
     for (index in 1:length(anc.nd) ) {
       i <- anc.nd[index]
+      cat('Node: ', i, '\n')
       # the first branch is the focal one -- so ASR calculation is different
       if (index==1){
         # we hame multiple IFs: for numeric and "BASE" arguments of relative.t.branch
@@ -239,6 +242,7 @@ make.do.asr.marginal_divextra_branch <- function(all_branches, rootfunc)
 
 
 
+#' @export
 make.asr.marginal.classe_branch <- function (lik, ...)
 {
   e <- environment(lik)
@@ -254,28 +258,70 @@ make.asr.marginal.classe_branch <- function (lik, ...)
 }
 
 
-data(phy5)
-cols <- plyr::mapvalues(phy5$tip.state_3, from = c(1:3), to=c('black', "blue","red" ))
-plot(phy5, label.offset = 2, cex=1, no.margin = F)
-tiplabels(pch = 15, col = cols, cex = 2, adj = 1.5)
-nodelabels()
-tiplabels()
-edgelabels()
-axisPhylo()
 
-lik.td <-make.classe.td(phy5, phy5$tip.state_3, k=3, n.epoch=2, control=list(backend = "gslode"), strict=T)
-par.td <- c(4, c(1:54)/100)
-names(par.td) <- diversitree::argnames(lik.td)
-lik.est <- lik.td(par.td, intermediates=T)
-print(lik.est)
 
-st <-  asr.marginal.classe(lik.td, par.td)
-# ASR reconstruction at t=1 of the branch 3 (defined by the terminal node 9)
-# Note: relative.t.branch starts from present time and rquals to 0 at the branch's start
-st9 <-asr.marginal.classe_branch(lik.td, par.td, node.id=9, relative.t.branch= 1 )
-
-print(st)
-print(st9)
+#' Ancestral State Reconstruction Along a Branch for ClaSSE/GeoSSE Models
+#'
+#' Perform marginal ancestral state reconstruction at a specific time point along
+#' a branch for classe models. This function computes the marginal probability of
+#' each state at a given relative time along a specific branch.
+#'
+#' @param lik A likelihood function created by \code{make.classe.td} or related functions.
+#' @param pars A vector of parameters suitable for the likelihood function.
+#' @param node.id The node ID defining the branch of interest (using ape's node indexing,
+#'   same as displayed by \code{ape::nodelabels()}).
+#' @param relative.t.branch The relative time along the branch where reconstruction
+#'   should be performed. Time starts from present time (0) and increases as
+#'   the branch continues. Can be numeric or "BASE" for the base of the branch (i.e.,
+#'   where the focal branch joins with its sister branch).
+#'   Must be <= branch length.
+#' @param ... Additional arguments passed through to the reconstruction function,
+#'   including root conditions and survival conditioning.
+#'
+#' @details
+#' This function performs marginal ancestral state reconstruction at a specific
+#' point along a branch, allowing examination of evolutionary transitions within
+#' branches rather than just at nodes. The reconstruction accounts for the
+#' phylogenetic relationships, branch lengths, and time-dependent evolutionary
+#' model specified in the likelihood function.
+#'
+#' The function internally converts node IDs from ape's indexing system to
+#' diversitree's indexing system and validates that the requested time point
+#' does not exceed the branch length.
+#'
+#'
+#' @return A column vector containing the marginal probabilities of each character
+#'   state at the specified time point along the branch.
+#'
+#' @seealso \code{\link{asr.marginal.classe}} for reconstruction at nodes,
+#'   \code{\link{make.asr.marginal.classe_branch}} for the function factory version.
+#'
+#' @examples
+#' data(phy5)
+#' cols <- plyr::mapvalues(phy5$tip.state_3, from = c(1:3), to=c('black', "blue","red" ))
+#' plot(phy5, label.offset = 2, cex=1, no.margin = FALSE)
+#' tiplabels(pch = 15, col = cols, cex = 2, adj = 1.5)
+#' nodelabels()
+#' tiplabels()
+#' edgelabels()
+#' axisPhylo()
+#'
+#' lik.td <-make.classe.td(phy5, phy5$tip.state_3, k=3, n.epoch=2, control=list(backend = "gslode"),
+#'   strict=TRUE)
+#' par.td <- c(4, c(1:54)/100)
+#' names(par.td) <- diversitree::argnames(lik.td)
+#' lik.est <- lik.td(par.td, intermediates=TRUE)
+#' print(lik.est)
+#'
+#' st <-  asr.marginal.classe(lik.td, par.td)
+#' # ASR reconstruction at t=1 along branch 3 (defined by terminal node 9)
+#' # Note: relative.t.branch starts from present time and equals 0 at the branch's start
+#' st9 <-asr.marginal.classe_branch(lik.td, par.td, node.id=9, relative.t.branch= 1 )
+#'
+#' print(st)
+#' print(st9)
+#'
+#' @export
 asr.marginal.classe_branch <- function (lik, pars, node.id, relative.t.branch, ...){
   e <- environment(lik)
   eb <- environment(e$all_branches)
@@ -298,6 +344,79 @@ asr.marginal.classe_branch <- function (lik, pars, node.id, relative.t.branch, .
 
 
 
+
+#' Ancestral State Reconstruction Along a Branch at Multiple Time Points
+#'
+#' Perform marginal ancestral state reconstruction at multiple time points along
+#' a specific branch for classe models. This function computes the marginal
+#' probability of each state at evenly spaced time intervals along a branch,
+#' providing a detailed view of evolutionary transitions within the branch.
+#'
+#' @param lik A likelihood function created by \code{make.classe.td} or related functions.
+#' @param pars A vector of parameters suitable for the likelihood function.
+#' @param node.id The node ID defining the branch of interest (using ape's node indexing,
+#'   same as displayed by \code{ape::nodelabels()}).
+#' @param Nbins The number of time bins to sample along the branch (default: 1).
+#'   More bins provide higher resolution but require more computation.
+#' @param eps A small epsilon value to avoid sampling exactly at the branch endpoints
+#'   (default: 0.01). This prevents numerical issues at boundary conditions.
+#' @param include.ends Logical indicating whether to include reconstructions at the
+#'   exact branch endpoints (present time and base of branch). If TRUE, adds
+#'   reconstructions at t=0 and t="BASE" to the results (default: TRUE).
+#' @param ... Additional arguments passed through to the reconstruction function,
+#'   including root conditions and survival conditioning.
+#'
+#' @details
+#' This function extends \code{asr.marginal.classe_branch} to perform reconstructions
+#' at multiple time points along a single branch. Time points are evenly distributed
+#' between \code{eps} and \code{branch_length - eps}. When \code{include.ends=TRUE},
+#' additional reconstructions are added at the exact endpoints.
+#'
+#' The function is particularly useful for:
+#' \itemize{
+#'   \item Visualizing evolutionary transitions along branches
+#'   \item Detecting rapid evolutionary changes within branches
+#'   \item Creating detailed plots of state probability changes over time
+#' }
+#'
+#' Time measurement follows the same convention as \code{asr.marginal.classe_branch}:
+#' t=0 corresponds to present time (tip), increasing values move toward the ancestral node.
+#'
+#' @return A list containing:
+#' \describe{
+#'   \item{asr}{A matrix where each column represents a time point and each row
+#'     represents a character state. Values are marginal probabilities.}
+#'   \item{t}{A vector of time points corresponding to the columns in \code{asr}.}
+#'   \item{depth}{The depth (distance from root) of the focal node.}
+#' }
+#'
+#' @seealso \code{\link{asr.marginal.classe_branch}} for single time point reconstruction,
+#'   \code{\link{asr.marginal.classe}} for reconstruction at nodes only.
+#'
+#' @examples
+#' data(phy5)
+#' cols <- plyr::mapvalues(phy5$tip.state_3, from = c(1:3), to=c('black', "blue","red" ))
+#' plot(phy5, label.offset = 2, cex=1, no.margin = FALSE)
+#' tiplabels(pch = 15, col = cols, cex = 2, adj = 1.5)
+#' nodelabels()
+#' tiplabels()
+#' edgelabels()
+#' axisPhylo()
+#'
+#' lik.td <-make.classe.td(phy5, phy5$tip.state_3, k=3, n.epoch=2, control=list(backend = "gslode"),
+#'   strict=TRUE)
+#' par.td <- c(4, c(1:54)/100)
+#' names(par.td) <- diversitree::argnames(lik.td)
+#' lik.est <- lik.td(par.td, intermediates=TRUE)
+#' print(lik.est)
+#'
+#' st <-  asr.marginal.classe(lik.td, par.td)
+#' # ASR reconstruction at t=1 along branch 3 (defined by terminal node 9)
+#' # Note: relative.t.branch starts from present time and equals 0 at the branch's start
+#' br9 <- asr.marginal.classe_branch.multiple(lik.td, par.td, node.id=9, Nbins=50, include.ends=TRUE)
+#' plot(br9$t, br9$asr[1,], type='l', xlim=rev(range(br9$t)))
+#'
+#' @export
 asr.marginal.classe_branch.multiple <- function (lik, pars, node.id, Nbins=1, eps=0.01, include.ends=TRUE,  ...){
   e <- environment(lik)
   eb <- environment(e$all_branches)

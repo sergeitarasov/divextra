@@ -33,7 +33,7 @@ par.categories.td <- read_yaml_pars_td(file_path)
 # display
 print(par.categories.td)
 
-lik.td <-make.classe.td(phy, phy$tip.state, k=3, n.epoch=2, control=list(backend = "gslode"), strict=T)
+lik.td <-make.classe.td(phy, phy$tip.state, k=3, n.epoch=2, control=list(backend = "gslode", tol=1e-16), strict=T)
 formula.td <- make_constraints_sse_td(par.categories.td)
 lik.const.td <- constrain(lik.td, formulae = formula.td)
 starting.point <- init.pars.classe_td(lik.const.td, phy, k=3, n.epoch=2, eps=0.5)
@@ -46,8 +46,22 @@ st <- asr.marginal.classe(lik.td, mle.td$par.full)
 cols <- plyr::mapvalues(phy$tip.state, from = c(1:3), to=c('orange', "green","red" ))
 plot(phy, show.tip.label = F, cex=1, no.margin = F)
 tiplabels(pch = 15, col = cols, cex = .5, adj = 1)
+# nodelabels(cex = .4)
 nodelabels(thermo=t(st), piecol=c('orange', "green","red" ), cex=.3, adj=0)
 
+br <- asr.marginal.classe_branch.multiple(lik.td, mle.td$par.full, node.id=928, eps = 0.1, Nbins=10, include.ends=TRUE)
+plot(br$t, br$asr[3,], type='l', xlim=rev(range(br$t)))
+
+928-Ntip(phy)
+845-Ntip(phy)
+st[,438]
+st[,355]
+
+
+801-Ntip(phy)
+729-Ntip(phy)
+st[,311]
+st[,239]
 
 #------------------------------
 #---- ASR
@@ -73,6 +87,31 @@ st9 <-asr.marginal.classe_branch(lik.td, par.td, node.id=9, relative.t.branch= 1
 
 print(st)
 print(st9)
+
+#------------------------------
+#---- ASR
+
+#' data(phy5)
+#' cols <- plyr::mapvalues(phy5$tip.state_3, from = c(1:3), to=c('black', "blue","red" ))
+#' plot(phy5, label.offset = 2, cex=1, no.margin = F)
+#' tiplabels(pch = 15, col = cols, cex = 2, adj = 1.5)
+#' nodelabels()
+#' tiplabels()
+#' edgelabels()
+#' axisPhylo()
+#'
+#' lik.td <-make.classe.td(phy5, phy5$tip.state_3, k=3, n.epoch=2, control=list(backend = "gslode"), strict=T)
+#' par.td <- c(4, c(1:54)/100)
+#' names(par.td) <- diversitree::argnames(lik.td)
+#' lik.est <- lik.td(par.td, intermediates=T)
+#' print(lik.est)
+#'
+#' st <-  asr.marginal.classe(lik.td, par.td)
+#' # ASR reconstruction at t=1 along branch 3 (defined by terminal node 9)
+#' # Note: relative.t.branch starts from present time and equals 0 at the branch's start
+#' br9 <- asr.marginal.classe_branch.multiple(lik.td, par.td, node.id=9, Nbins=50, include.ends=TRUE)
+#' plot(br9$t, br9$asr[1,], type='l', xlim=rev(range(br9$t)))
+
 
 #------------------------------
 #---- ASR

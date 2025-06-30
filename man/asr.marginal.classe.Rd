@@ -2,7 +2,7 @@
 % Please edit documentation in R/asr.R
 \name{asr.marginal.classe}
 \alias{asr.marginal.classe}
-\title{Ancestral State Reconstruction for Classe Models}
+\title{Ancestral State Reconstruction for ClaSSE/GeoSSE Models}
 \usage{
 asr.marginal.classe(lik, pars, nodes = NULL, ...)
 }
@@ -40,17 +40,18 @@ using \code{make.asr.marginal.classe}.
 #------- Toy dataset, parameters given
 data(phy5)
 cols <- plyr::mapvalues(phy5$tip.state_3, from = c(1:3), to=c('black', "blue","red" ))
-plot(phy5, label.offset = 2, cex=1, no.margin = F)
+plot(phy5, label.offset = 2, cex=1, no.margin = FALSE)
 tiplabels(pch = 15, col = cols, cex = 2, adj = 1.5)
 nodelabels()
 tiplabels()
 edgelabels()
 axisPhylo()
 
-lik.td <-make.classe.td(phy5, phy5$tip.state_3, k=3, n.epoch=2, control=list(backend = "gslode"), strict=T)
+lik.td <-make.classe.td(phy5, phy5$tip.state_3, k=3, n.epoch=2, control=list(backend = "gslode"),
+ strict=TRUE)
 par.td <- c(4, c(1:54)/100)
 names(par.td) <- diversitree::argnames(lik.td)
-lik.est <- lik.td(par.td, intermediates=T)
+lik.est <- lik.td(par.td, intermediates=TRUE)
 print(lik.est)
 
 st <-  asr.marginal.classe(lik.td, par.td)
@@ -67,18 +68,19 @@ par.categories.td <- read_yaml_pars_td(file_path)
 # display
 print(par.categories.td)
 
-lik.td <-make.classe.td(phy, phy$tip.state, k=3, n.epoch=2, control=list(backend = "gslode"), strict=T)
+lik.td <-make.classe.td(phy, phy$tip.state, k=3, n.epoch=2, control=list(backend = "gslode"),
+ strict=TRUE)
 formula.td <- make_constraints_sse_td(par.categories.td)
 lik.const.td <- constrain(lik.td, formulae = formula.td)
 starting.point <- init.pars.classe_td(lik.const.td, phy, k=3, n.epoch=2, eps=0.5)
 print(starting.point)
 
-mle.td <- find.mle(lik.const.td, starting.point, condition.surv=TRUE, keep.func=F)
+mle.td <- find.mle(lik.const.td, starting.point, condition.surv=TRUE, keep.func=FALSE)
 
 st <- asr.marginal.classe(lik.td, mle.td$par.full)
 
 cols <- plyr::mapvalues(phy$tip.state, from = c(1:3), to=c('orange', "green","red" ))
-plot(phy, show.tip.label = F, cex=1, no.margin = F)
+plot(phy, show.tip.label = FALSE, cex=1, no.margin = FALSE)
 tiplabels(pch = 15, col = cols, cex = .5, adj = 1)
 nodelabels(thermo=t(st), piecol=c('orange', "green","red" ), cex=.3, adj=0)
 }

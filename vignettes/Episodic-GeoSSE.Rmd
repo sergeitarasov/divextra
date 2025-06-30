@@ -90,21 +90,29 @@ pars2groups(mle.td$par.full)
 
 ```{r}
 #asrm <- make.asr.marginal.classe(lik.td)
-st <- make.asr.marginal.classe(lik.td)(mle.td$par.full)
-#st
-#round(st, 2)
+st <- asr.marginal.classe(lik.td, mle.td$par.full)
 round(st[,1:10], 2)
-#str(st)
+
 ```
 
 ```{r}
 library(plyr)
 
-cols <- mapvalues(phy$tip.state, from = c(1:3), to=c('orange', "green","red" ))
+cols <- plyr::mapvalues(phy$tip.state, from = c(1:3), to=c('orange', "green","red" ))
 plot(phy, show.tip.label = F, cex=1, no.margin = F)
 tiplabels(pch = 15, col = cols, cex = .5, adj = 1)
+# nodelabels(cex = .4)
 nodelabels(thermo=t(st), piecol=c('orange', "green","red" ), cex=.3, adj=0)
 
 ```
 
+```{r}
+br <- asr.marginal.classe_branch.multiple(lik.td, mle.td$par.full, node.id=928, eps = 0.1, Nbins=10, include.ends=TRUE)
+plot(br$t, br$asr[3,], type='l', xlim=rev(range(br$t)))
+
+928-Ntip(phy)
+845-Ntip(phy)
+st[,438]
+st[,355]
+```
 
