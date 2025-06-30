@@ -2,6 +2,7 @@
 
 S3method(update,info.classe_td)
 export("%>%")
+export(asr.marginal.classe)
 export(check_parametrization_consistency)
 export(create_parameter_html)
 export(get_aic)

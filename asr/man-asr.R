@@ -11,7 +11,12 @@ library(plyr)
 #
 # saveRDS(phy, 'asr/tree.rds')
 phy <- readRDS('asr/tree.rds')
-
+phy$tip.state
+#phy5 <- phy
+#save(phy5, file = "data/phy5.rda")
+#load("data/phy5.rda")
+plot(phy5)
+ls()
 
 cols <- mapvalues(phy$tip.state, from = c(0, 1), to=c("grey", 'black'))
 plot(phy, label.offset = 2, cex=1, no.margin = F)

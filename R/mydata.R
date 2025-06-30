@@ -31,3 +31,17 @@ NULL
 # file_path <- system.file("extdata", "geosse3_td_test.yml", package = "divextra")
 # par.categories.td <- read_yaml_pars_td(file_path)
 # formula.td <- make_constraints_sse_td(par.categories.td)
+
+
+#' Toy Tree Data
+#'
+#' A phylogenetic tree with five tips
+#'
+#' @format phylo object
+#' @source Generated using diversitree simulation functions
+#'
+#' @examples
+#' data(phy5)
+#' print(phy5)
+#'
+"phy5"
