@@ -591,18 +591,18 @@ check_parametrization_consistency <- function(par.diversitree, par.yaml){
 #' @examples
 #' # Print 3x4 zero matrix
 #' print_yaml_matrix(3, 4)
-#' 
+#'
 #' # Print 2x2 zero matrix
 #' print_yaml_matrix(2, 2)
 print_yaml_matrix <- function(N, K) {
   # Create empty matrix string
   matrix_str <- ""
-  
+
   # Loop through rows
   for(i in 1:N) {
     # Start row with "["
     row_str <- "["
-    
+
     # Add elements with proper spacing
     for(j in 1:K) {
       if(j == K) {
@@ -613,7 +613,7 @@ print_yaml_matrix <- function(N, K) {
         row_str <- paste0(row_str, "0,      ")
       }
     }
-    
+
     # Close row with "]" and newline
     if(i == N) {
       # Last row has no newline
@@ -621,11 +621,11 @@ print_yaml_matrix <- function(N, K) {
     } else {
       row_str <- paste0(row_str, "]\n")
     }
-    
+
     # Add row to matrix string
     matrix_str <- paste0(matrix_str, row_str)
   }
-  
+
   # Print the matrix
   cat(matrix_str)
 }
@@ -654,52 +654,54 @@ print_yaml_matrix <- function(N, K) {
 #'   scE = c("lambda120203.1", "lambda120203.2")
 #' )
 #' )
-#' 
+#'
 #' # New grouping scheme
 #' new_groups <- list(
 #'   c("dAE", "dAM"),
 #'   c("scA", "scE")
 #' )
-#' 
+#'
 #' regroup_parameters(orig_pars, new_groups)
 #' }
 regroup_parameters <- function(yaml_pars, new_groups) {
   orig_pars <- yaml_pars$pars
-  
+
   # Check for overlapping groups
   all_groups <- unlist(new_groups)
   if (length(all_groups) != length(unique(all_groups))) {
     stop("Error: Groups in new_groups overlap!")
   }
-  
+
   # Check if all elements sets in new groups are present in the original pars
   unchanged_groups <- setdiff(names(orig_pars), all_groups)
   if (length(unchanged_groups) > 0) {
-    stop("Error: new_groups and yaml_pars are not consistent!")
+    stop("Error: new_groups and yaml_pars are not consistent!\n",
+         "This items are missing in yaml: ", unchanged_groups
+         )
   }
-  
+
   # Initialize output list
   result <- list()
-  
+
   # Process each new group
   for (group in new_groups) {
     # print
     # Get first name in group as new group name
     new_group_name <- group[1]
-    
+
     # Combine parameters from all subgroups
     combined_pars <- unlist(orig_pars[group])
-    
+
     # Add to result list
     result[[new_group_name]] <- combined_pars
   }
-  
+
   # Keep any original groups not mentioned in new_groups
   # unchanged_groups <- setdiff(names(orig_pars), unlist(new_groups))
   # if (length(unchanged_groups) > 0) {
   #   result <- c(result, orig_pars[unchanged_groups])
   # }
-  
+
   # Wrap in list with 'pars' name
   yaml_pars$pars <- result
   return(yaml_pars)
@@ -721,7 +723,7 @@ regroup_parameters <- function(yaml_pars, new_groups) {
 #' \dontrun{
 #' # Read parameter groups from YAML file
 #' groups <- read_par_groups_yaml("parameter_groups.yml")
-#' 
+#'
 #' # Access specific group lists
 #' groups$parameter_groups    # First group list
 #' groups$parameter_groups2   # Second group list
@@ -729,12 +731,12 @@ regroup_parameters <- function(yaml_pars, new_groups) {
 read_par_groups_yaml <- function(yaml_file) {
   # Read YAML file
   yaml_content <- yaml::yaml.load_file(yaml_file)
-  
+
   # Process each named list in the YAML content
   result <- lapply(yaml_content, function(group_list) {
     # Convert each group to character vector
     lapply(group_list, as.character)
   })
-  
+
   return(result)
 }
