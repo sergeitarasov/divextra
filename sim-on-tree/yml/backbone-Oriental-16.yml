@@ -1,0 +1,75 @@
+# Direct Oriental/Eurasian -> Mauritius hypothesis in the shared 16-state model.
+# E.R is available only in the recent epoch.
+states: [A, E, M, U, S, R, A.E, A.M, A.U, A.S, A.R, E.M, E.U, E.S, E.R, S.R]
+n.epoch: 2
+epoch.times: [9]
+
+1:
+  lambda_unit_regions: {A: sA, E: sE, M: sM, U: sU, S: 0, R: sR}
+  lambda_comb_regions:
+    A.E: [scA, sA, sE]
+    A.M: [scAM, 0, 0]
+    A.U: [scA, sA, sU]
+    A.S: [0, 0, 0]
+    A.R: [0, 0, 0]
+    E.M: [scEM, 0, 0]
+    E.U: [scE, sE, sU]
+    E.S: [0, 0, 0]
+    E.R: [scER, 0, 0]
+    S.R: [0, 0, 0]
+  Q_dQ:
+    #    A.E, A.M, A.U, A.S, A.R, E.M, E.U, E.S, E.R, S.R
+    A: [dAE, dAM, dAU, 0,   0,   0,   0,   0,   0,   0]
+    E: [dEA, 0,   0,   0,   0,   dEM, dEU, 0,   dER, 0]
+    M: [0,   0,   0,   0,   0,   0,   0,   0,   0,   0]
+    U: [0,   0,   0,   0,   0,   0,   0,   0,   0,   0]
+    S: [0,   0,   0,   0,   0,   0,   0,   0,   0,   0]
+    R: [0,   0,   0,   0,   0,   0,   0,   0,   0,   0]
+  mu: {A: xA, E: xE, M: xM, U: xU, S: 0, R: xR}
+  Q_xQ:
+    #      A,  E,  M, U, S, R
+    A.E: [xE, xA, 0,  0, 0, 0]
+    A.M: [0,  0,  0,  0, 0, 0]
+    A.U: [xU, 0,  0, xA, 0, 0]
+    A.S: [0,  0,  0,  0, 0, 0]
+    A.R: [0,  0,  0,  0, 0, 0]
+    E.M: [0,  0,  0,  0, 0, 0]
+    E.U: [0, xU,  0, xE, 0, 0]
+    E.S: [0,  0,  0,  0, 0, 0]
+    E.R: [0,  0,  0,  0, 0, 0]
+    S.R: [0,  0,  0,  0, 0, 0]
+
+2:
+  lambda_unit_regions: {A: sA, E: sE, M: sM, U: sU, S: 0, R: 0}
+  lambda_comb_regions:
+    A.E: [scA, sA, sE]
+    A.M: [scAM, 0, 0]
+    A.U: [scA, sA, sU]
+    A.S: [0, 0, 0]
+    A.R: [0, 0, 0]
+    E.M: [scEM, 0, 0]
+    E.U: [scE, sE, sU]
+    E.S: [0, 0, 0]
+    E.R: [0, 0, 0]
+    S.R: [0, 0, 0]
+  Q_dQ:
+    #    A.E, A.M, A.U, A.S, A.R, E.M, E.U, E.S, E.R, S.R
+    A: [dAE, dAM, dAU, 0,   0,   0,   0,   0,   0,   0]
+    E: [dEA, 0,   0,   0,   0,   dEM, dEU, 0,   0,   0]
+    M: [0,   0,   0,   0,   0,   0,   0,   0,   0,   0]
+    U: [0,   0,   0,   0,   0,   0,   0,   0,   0,   0]
+    S: [0,   0,   0,   0,   0,   0,   0,   0,   0,   0]
+    R: [0,   0,   0,   0,   0,   0,   0,   0,   0,   0]
+  mu: {A: xA, E: xE, M: xM, U: xU, S: 0, R: 0}
+  Q_xQ:
+    #      A,  E,  M, U, S, R
+    A.E: [xE, xA, 0,  0, 0, 0]
+    A.M: [0,  0,  0,  0, 0, 0]
+    A.U: [xU, 0,  0, xA, 0, 0]
+    A.S: [0,  0,  0,  0, 0, 0]
+    A.R: [0,  0,  0,  0, 0, 0]
+    E.M: [0,  0,  0,  0, 0, 0]
+    E.U: [0, xU,  0, xE, 0, 0]
+    E.S: [0,  0,  0,  0, 0, 0]
+    E.R: [0,  0,  0,  0, 0, 0]
+    S.R: [0,  0,  0,  0, 0, 0]

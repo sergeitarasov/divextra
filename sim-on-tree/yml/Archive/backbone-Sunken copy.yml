@@ -1,0 +1,148 @@
+#
+# This yaml specifies the full model for Africa -> Mauritius scenario
+# Epoch 2 is constant
+#
+# A – Africa
+# M – Madagascar
+# E – Oriental + Palearctic (“Eurasia”)
+# U – Australia
+# R – Mauritius (maRitius)
+# S – Sunken Islands
+#
+# => speciation event
+# -> state transition event
+#---------------------
+# A, M, E, U, R, S
+#
+# A.M, A.E, A.U || A.R, A.S
+#
+# E.M E.U,
+#
+# S.R
+#---------------------
+
+# single regions first, 14 states
+states: [A, E, M, U, S, R,   A.E, A.M, A.U, A.S, A.R,   E.M, E.U,    S.R]
+
+# td model
+n.epoch: 2
+# start of epoch 1, time back from the present
+epoch.times: [10]
+
+#--------------------------------------------------------------
+# Epoch 1
+#--------------------------------------------------------------
+1:
+  # Within-region speciation rates, as sA: A => A + A
+  # Speciation event without dispersal (e.g., sA, sB) corresponding to lambdas without state changes (e.g, lam_iii)
+  lambda_unit_regions:
+    A: sA
+    E: sE
+    M: sM
+    U: sU
+    S: 0 #!
+    R: sR
+
+  # Speciation events occuring when a lineage is in combined region/state (e.g., sAB)
+  lambda_comb_regions:
+       # [A.B=>(A, B), A.B=>(A, A.B), A.B=>(B, A.B)]
+    A.E: [scA, sA, sE]
+    A.M: [scA, sA, sM]
+    A.U: [scA, sA, sU]
+    A.S: [0, 0, 0] #!
+    A.R: [0, 0, 0]
+    E.M: [scE, sE, sM]
+    E.U: [scE, sE, sU]
+    S.R: [0, 0, sR]
+
+  # Range expansion events (e.g., dA, dB) corresponding to q parameters.
+  #  A → AB
+  Q_dQ:
+    #  A.E,     A.M,    A.U,    A.S,   A.R,    E.M,     E.U,    S.R
+    A: [dAE,    dAM,    dAU,    0,      0,      0,      0,      0]
+    E: [dEA,    0,      0,      0,      0,      dEM,    dEU,    0]
+    M: [0,      0,      0,      0,      0,      0,      0,      0]
+    U: [0,      0,      0,      0,      0,      0,      0,      0]
+    S: [0,      0,      0,      0,      0,      0,      0,    dSR]
+    R: [0,      0,      0,      0,      0,      0,      0,      0]
+
+  # Range contraction events (e.g., xA, xB) corresponding to mu parameters
+  mu:
+    A: xA
+    E: xE
+    M: xM
+    U: xU
+    S: xS #!
+    R: xR
+
+  # Range contraction events (e.g., xA, xB) corresponding to q parameters.
+  Q_xQ:
+    #     A,      E,      M,      U,      S,      R
+    A.E: [xE,     xA,     0,      0,      0,      0]
+    A.M: [xM,     0,      xA,     0,      0,      0]
+    A.U: [xU,     0,      0,      xA,     0,      0]
+    A.S: [0,      0,      0,      0,      0,      0]
+    A.R: [0,      0,      0,      0,      0,      0]
+    E.M: [0,      xM,     xE,     0,      0,      0]
+    E.U: [0,      xU,     0,      xE,     0,      0]
+    S.R: [0,      0,      0,      0,      0,     xS] #!
+
+
+#--------------------------------------------------------------
+# Epoch 2
+#--------------------------------------------------------------
+2:
+  # Within-region speciation rates, as sA: A => A + A
+  # Speciation event without dispersal (e.g., sA, sB) corresponding to lambdas without state changes (e.g, lam_iii)
+  lambda_unit_regions:
+    A: sA
+    E: sE
+    M: sM
+    U: sU
+    S: sS
+    R: 0
+
+  # Speciation events occuring when a lineage is in combined region/state (e.g., sAB)
+  lambda_comb_regions:
+       # [A.B=>(A, B), A.B=>(A, A.B), A.B=>(B, A.B)]
+    A.E: [scA, sA, sE]
+    A.M: [scA, sA, sM]
+    A.U: [scA, sA, sU]
+    A.S: [0, sA, sS]
+    A.R: [0, 0, 0]
+    E.M: [scE, sE, sM]
+    E.U: [scE, sE, sU]
+    S.R: [0, 0, 0]
+
+  # Range expansion events (e.g., dA, dB) corresponding to q parameters.
+  #  A → AB
+  Q_dQ:
+    #  A.E,     A.M,    A.U,    A.S,   A.R,    E.M,     E.U,    S.R
+    A: [dAE,    dAM,    dAU,    dAS,    0,      0,      0,      0]
+    E: [dEA,    0,      0,      0,      0,      dEM,    dEU,    0]
+    M: [0,      0,      0,      0,      0,      0,      0,      0]
+    U: [0,      0,      0,      0,      0,      0,      0,      0]
+    S: [0,      0,      0,      0,      0,      0,      0,      0]
+    R: [0,      0,      0,      0,      0,      0,      0,      0]
+
+  # Range contraction events (e.g., xA, xB) corresponding to mu parameters
+  mu:
+    A: xA
+    E: xE
+    M: xM
+    U: xU
+    S: xS
+    R: 0
+
+  # Range contraction events (e.g., xA, xB) corresponding to q parameters.
+  Q_xQ:
+    #     A,      E,      M,      U,      S,      R
+    A.E: [xE,     xA,     0,      0,      0,      0]
+    A.M: [xM,     0,      xA,     0,      0,      0]
+    A.U: [xU,     0,      0,      xA,     0,      0]
+    A.S: [0,     0,      0,      0,     xA,      0]
+    A.R: [0,      0,      0,      0,      0,      0]
+    E.M: [0,      xM,     xE,     0,      0,      0]
+    E.U: [0,      xU,     0,      xE,     0,      0]
+    S.R: [0,      0,      0,      0,      0,      0]
+

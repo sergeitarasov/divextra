@@ -10,7 +10,6 @@ License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
 Depends:
     R (>= 4.3.1),
     ape,
@@ -19,10 +18,13 @@ Depends:
     knitr,
     kableExtra
 Imports: 
+    expm,
     magrittr,
     stringr
 Suggests: 
+    phytools,
     rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0

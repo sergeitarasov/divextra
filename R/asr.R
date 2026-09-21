@@ -24,6 +24,7 @@ make.do.asr.marginal_divextra <- function(all_branches, rootfunc)
 }
 
 
+#' @importFrom diversitree make.asr.marginal
 #' @export
 make.asr.marginal.classe <- function (lik, ...)
 {

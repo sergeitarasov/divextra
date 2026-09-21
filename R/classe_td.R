@@ -50,6 +50,7 @@ make.pars.classe.td <- function (n.epoch, k)
 # diversitree:::update.info.td
 # info <- cache$info
 
+#' @importFrom stats update
 #' @method update info.classe_td
 #' @export
 update.info.classe_td <- function (info, k, n.epoch)
@@ -202,4 +203,3 @@ make.classe.td <- function (tree, states, k, n.epoch, sampling.f = NULL, strict 
   class(ll) <- c("classe.td", "classe", "dtlik", "function")
   ll
 }
-

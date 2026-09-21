@@ -4,3 +4,5 @@
 ^README\.Rmd$
 ^doc$
 ^Meta$
+^sim-on-tree($|/)
+^\.DS_Store$
