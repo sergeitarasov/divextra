@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Model Parameters</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+h1 { color: #2c3e50; }
+h2 { color: #34495e; margin-top: 30px; }
+table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+tr:nth-child(even) td:not(:first-child) { background-color: #f2f2f2; }
+td:first-child { background-color: #3498db; color: white; }
+table.mu-table td:first-child { background-color: inherit; color: inherit; }
+table.mu-table tr:nth-child(even) td { background-color: #f2f2f2; }
+th { background-color: #3498db; color: white; }
+td {
+        position: relative;
+        padding: 4px 8px 16px 8px;
+        line-height: 1.2;
+        vertical-align: top;
+    }
+.cell-wrapper {
+        min-height: 20px;
+        display: inline-block;
+        position: relative;
+    }
+.coordinate {
+        color: #888;
+        font-size: 0.8em;
+        display: none;
+        position: absolute;
+        bottom: -12px;
+        left: 8px;
+        background-color: white;
+        padding: 0 2px;
+        border-radius: 2px;
+        z-index: 1;
+    }
+.epoch-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+    }
+.epoch {
+        flex: 1;
+        padding: 0 5px;
+    }
+    .model-info {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 20px 0;
+        border-left: 4px solid #3498db;
+    }
+    .model-info p {
+        margin: 5px 0;
+        font-family: monospace;
+    }
+</style>
+<script>
+function toggleCoordinates() {
+  var coords = document.getElementsByClassName('coordinate');
+  var display = document.getElementById('showCoords').checked ? 'block' : 'none';
+  for(var i = 0; i < coords.length; i++) {
+    coords[i].style.display = display;
+  }
+}
+</script>
+</head>
+<body>
+<h1>ClaSSE/GeoSSE model (epoch 1 is the most recent)</h1>
+<h2>Note: the suffix in parameter name  for epoch 2 is displayed inccorrectly (i.e., xxx.1), it should be .2 not .1 (to be fixed later)</h2>
+<div class='model-info'>
+        <h3>GeoSSE Test</h3>
+        <p>Parameter count: 2</p>
+        <p>Number of states: 3</p>
+        <p>Number of epochs: 2</p>
+        <p>Epoch times: 10</p>
+        <p>Regions: A, B, A.B</p>
+        </div>
+<input type='checkbox' id='showCoords' onclick='toggleCoordinates()'> Show parameter names
+<br><br>
+<div class='epoch-container'>
+<div class='epoch'><h2>Epoch 1</h2>
+<h3>Lambda Tensors</h3>
+<h4>Lambda Tensor A </h4>
+<table class="table table-hover" style="width: auto !important; ">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:left;"> A </th>
+   <th style="text-align:left;"> B </th>
+   <th style="text-align:left;"> A.B </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> A </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.1<span class="coordinate">lambda111.1</span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> B </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> A.B </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+</tbody>
+</table>
+<h4>Lambda Tensor B </h4>
+<table class="table table-hover" style="width: auto !important; ">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:left;"> A </th>
+   <th style="text-align:left;"> B </th>
+   <th style="text-align:left;"> A.B </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> A </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> B </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.1<span class="coordinate">lambda222.1</span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> A.B </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+</tbody>
+</table>
+<h4>Lambda Tensor A.B </h4>
+<table class="table table-hover" style="width: auto !important; ">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:left;"> A </th>
+   <th style="text-align:left;"> B </th>
+   <th style="text-align:left;"> A.B </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> A </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.1<span class="coordinate">lambda312.1</span></span> </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.1<span class="coordinate">lambda313.1</span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> B </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.1<span class="coordinate">lambda323.1</span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> A.B </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+</tbody>
+</table>
+<h3>Mu Parameters</h3>
+<table class="table table-hover" style="width: auto !important; ">
+ <thead>
+  <tr>
+   <th style="text-align:left;"> A </th>
+   <th style="text-align:left;"> B </th>
+   <th style="text-align:left;"> A.B </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;color: black !important;background-color: white !important;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;color: black !important;background-color: white !important;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;color: black !important;background-color: white !important;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+</tbody>
+</table>
+<h3>Q Matrix</h3>
+<table class="table table-hover" style="width: auto !important; ">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:left;"> A </th>
+   <th style="text-align:left;"> B </th>
+   <th style="text-align:left;"> A.B </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> A </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.1<span class="coordinate">q13.1</span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> B </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.1<span class="coordinate">q23.1</span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> A.B </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<div class='epoch'><h2>Epoch 2</h2>
+<h3>Lambda Tensors</h3>
+<h4>Lambda Tensor A </h4>
+<table class="table table-hover" style="width: auto !important; ">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:left;"> A </th>
+   <th style="text-align:left;"> B </th>
+   <th style="text-align:left;"> A.B </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> A </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.3<span class="coordinate">lambda111.1</span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> B </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> A.B </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+</tbody>
+</table>
+<h4>Lambda Tensor B </h4>
+<table class="table table-hover" style="width: auto !important; ">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:left;"> A </th>
+   <th style="text-align:left;"> B </th>
+   <th style="text-align:left;"> A.B </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> A </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> B </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.3<span class="coordinate">lambda222.1</span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> A.B </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+</tbody>
+</table>
+<h4>Lambda Tensor A.B </h4>
+<table class="table table-hover" style="width: auto !important; ">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:left;"> A </th>
+   <th style="text-align:left;"> B </th>
+   <th style="text-align:left;"> A.B </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> A </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.3<span class="coordinate">lambda312.1</span></span> </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.3<span class="coordinate">lambda313.1</span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> B </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.3<span class="coordinate">lambda323.1</span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> A.B </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: rgba(52, 58, 64, 1) !important;">0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+</tbody>
+</table>
+<h3>Mu Parameters</h3>
+<table class="table table-hover" style="width: auto !important; ">
+ <thead>
+  <tr>
+   <th style="text-align:left;"> A </th>
+   <th style="text-align:left;"> B </th>
+   <th style="text-align:left;"> A.B </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;color: black !important;background-color: white !important;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;color: black !important;background-color: white !important;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;color: black !important;background-color: white !important;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+</tbody>
+</table>
+<h3>Q Matrix</h3>
+<table class="table table-hover" style="width: auto !important; ">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:left;"> A </th>
+   <th style="text-align:left;"> B </th>
+   <th style="text-align:left;"> A.B </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> A </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.1<span class="coordinate">q13.1</span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> B </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span style="font-weight: bold;    color: rgba(220, 53, 69, 1) !important;">0.1<span class="coordinate">q23.1</span></span> </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> A.B </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+   <td style="text-align:left;"> <span>0<span class="coordinate"></span></span> </td>
+  </tr>
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>

@@ -18,6 +18,7 @@ Depends:
     knitr,
     kableExtra
 Imports: 
+    deSolve,
     expm,
     magrittr,
     stringr

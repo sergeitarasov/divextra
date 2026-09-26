@@ -34,6 +34,7 @@ all.descendants <- descendants(phy, focal.node)
 tips <- all.descendants
 tips <- tips[tips <= n.tip]
 sisyphini <- ape::drop.tip(phy, phy$tip.label[-tips])
+plot(sisyphini)
 
 state.labels <- c(
   "A", "E", "M", "U", "S", "R", "A.E", "A.M", "A.U",
@@ -82,7 +83,7 @@ sim <- simulate.extinct.classe.td(
   max.branch.tries = 100,
   # This is an additional visualization condition. Without it, a valid draw
   # may contain no extinct species, especially for a short focal clade.
-  min.extinct = 1,
+  min.extinct = 0,
   nsim = 1,
   seed = 10
 )

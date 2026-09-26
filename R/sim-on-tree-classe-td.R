@@ -291,12 +291,22 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
 
 .simulate_classe_td_once <- function(backbone, schedule, max.events, max.taxa,
                                      max.branch.tries = 100L,
-                                     reject.extra.extant = FALSE) {
+                                     reject.extra.extant = FALSE,
+                                     guided = FALSE, initial.root.state = NULL,
+                                     side.lineage.edges = NULL,
+                                     side.lineage.mode = "all",
+                                     max.side.tries = 10000L,
+                                     extinction.cache = NULL,
+                                     descendant.cache = NULL) {
   tree <- backbone$tree
   state.labels <- schedule$state.labels
   edges <- list()
   tips <- list()
   events <- list()
+  pending.sides <- list()
+  branch.attempts <- integer()
+  side.attempts <- integer()
+  condition.sides <- identical(side.lineage.mode, "extinct_clades")
   node.counter <- 0L
   event.counter <- 0L
   extinct.counter <- 0L
@@ -347,12 +357,14 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
   snapshot <- function() {
     list(
       n.edges = length(edges), n.tips = length(tips), n.event.rows = length(events),
+      n.pending = length(pending.sides),
       node.counter = node.counter, event.counter = event.counter,
       extinct.counter = extinct.counter, extant.counter = extant.counter,
       n.events = n.events, n.terminals = n.terminals
     )
   }
   restore <- function(x) {
+    pending.sides <<- pending.sides[seq_len(x$n.pending)]
     if (length(edges) > x$n.edges)
       edges <<- edges[seq_len(x$n.edges)]
     if (x$n.edges == 0L)
@@ -430,9 +442,17 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
     map <- numeric()
     age <- start.age
     repeat {
-      ev <- draw.event(age, state, 0, map, allow.extinction = TRUE)
+      ev <- if (condition.sides && !is.null(extinction.cache)) {
+        .classe_td_draw_extinct_event(age, state, map, schedule, extinction.cache)
+      } else {
+        draw.event(age, state, 0, map, allow.extinction = TRUE)
+      }
       age <- ev$age
       map <- ev$map
+      # Stop at the first survivor; do not generate the rest of a rejected tree.
+      if (condition.sides && ev$type == "end")
+        stop(structure(list(message = "side clade reached extinction deadline"),
+                       class = c("classe_reject", "error", "condition")))
       if (ev$type == "transition") {
         count.event()
         add.event("transition", age, ev$epoch, parent, state, ev$to)
@@ -463,7 +483,7 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
             class = c("classe_reject", "error", "condition")
           ))
         extant.counter <<- extant.counter + 1L
-        label <- sprintf("extra_extant_%05d", extant.counter)
+        label <- sprintf("extant_%05d", extant.counter)
         add.tip(terminal, label, 0, state, "extra_extant", TRUE)
         add.event("present", 0, 1L, terminal, state)
       }
@@ -480,9 +500,12 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
       # This is an observed lineage in the supplied reconstructed tree. Its
       # survival is conditioned on the observation; extinction is simulated
       # only for the unobserved daughter created at a hidden speciation event.
-      ev <- draw.event(
+      ev <- if (!is.null(descendant.cache)) {
+        .classe_td_draw_backbone_event(age, state, stop.age, map,
+          backbone.edge, schedule, extinction.cache, descendant.cache)
+      } else draw.event(
         age, state, stop.age, map, allow.extinction = FALSE,
-        retain.spine.state = TRUE
+        retain.spine.state = !guided
       )
       age <- ev$age
       map <- ev$map
@@ -501,15 +524,27 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
         count.event()
         nd <- new.node("h")
         add.edge(parent, nd, edge.start, age, map, backbone.edge, generated = FALSE)
-        # A hidden event along an observed branch adds an unobserved daughter;
-        # the supplied backbone lineage itself continues in its current state.
-        # Only compatible cladogenetic outcomes are proposed by draw.event().
+        # The legacy sampler retains the parental spine state. The guided
+        # sampler instead randomly assigns both daughters from the full tensor.
         spine.state <- state
         side.state <- if (ev$pair[1] == state) ev$pair[2] else ev$pair[1]
+        if (guided) {
+          oriented <- ev$pair
+          if (is.null(descendant.cache) && oriented[1] != oriented[2] && stats::runif(1) < 0.5)
+            oriented <- rev(oriented)
+          spine.state <- oriented[1]
+          side.state <- oriented[2]
+        }
         add.event("hidden_speciation", age, ev$epoch, nd, state,
                   spine.state, side.state, backbone.edge)
         side.ok <- tryCatch({
-          simulate.side(nd, side.state, age)
+          if (guided) {
+            pending.sides[[length(pending.sides) + 1L]] <<-
+              list(parent = nd, state = side.state, age = age,
+                   backbone.edge = backbone.edge)
+          } else {
+            simulate.side(nd, side.state, age)
+          }
           TRUE
         }, classe_reject = function(e) FALSE)
         if (!side.ok) {
@@ -522,7 +557,7 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
         map <- numeric()
         next
       }
-      if (stats::runif(1) > target.probs[state]) {
+      if (is.null(descendant.cache) && stats::runif(1) > target.probs[state]) {
         failed <<- "endpoint_state_rejected"
         return(list(ok = FALSE, state = state))
       }
@@ -550,7 +585,7 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
         backbone$node.probs[, as.character(child.node)]
       }
     })
-    child.scores <- lapply(seq_along(children), function(z) {
+    child.scores <- if (!is.null(descendant.cache)) descendant.cache$child.scores(node) else if (guided) rep(list(rep(1, backbone$k)), 2L) else lapply(seq_along(children), function(z) {
       transition <- .classe_td_transition_matrix(
         age, backbone$age[children[z]], schedule
       )
@@ -560,6 +595,9 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
     node.ok <- FALSE
     last.failure <- NA_character_
     for (attempt in seq_len(max.branch.tries)) {
+      key <- as.character(node)
+      if (is.na(branch.attempts[key])) branch.attempts[key] <<- 0L
+      branch.attempts[key] <<- branch.attempts[key] + 1L
       before <- snapshot()
       pair <- .classe_td_observed_pair(
         schedule$arrays[[epoch]], parent.state, child.scores
@@ -585,10 +623,9 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
         }
         child.states[z] <- branch$state
       }
-      # Endpoint rejection must remain local to this observed node.  Include
-      # the descendant subtrees in the proposal: otherwise a failure at a
-      # shallow tip discards the entire history above this node and makes
-      # acceptance decay catastrophically with tree size.
+      # After accepting this pair, process descendant observed nodes. In the
+      # guided sampler their retry exhaustion fails the draw, preserving the
+      # rule that accepted ancestral branches are never reweighted by retries.
       if (node.ok) {
         for (z in seq_along(children)) {
           child.node <- children[z]
@@ -598,6 +635,7 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
               child.states[z], "observed", FALSE
             )
           } else if (!walk.backbone(child.node, child.states[z])) {
+            if (guided) return(FALSE)
             node.ok <- FALSE
             break
           }
@@ -620,7 +658,9 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
   }
 
   run.backbone <- function() {
-    if (backbone$stem.length > 0) {
+    if (guided) {
+      root.state <- initial.root.state
+    } else if (backbone$stem.length > 0) {
       stem <- simulate.spine(
         "stem_origin", backbone$stem.state,
         backbone$height + backbone$stem.length, backbone$height,
@@ -665,7 +705,34 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
     walk.backbone(backbone$root, root.state)
   }
   ok <- tryCatch(
-    run.backbone(),
+    {
+      accepted <- run.backbone()
+      if (isTRUE(accepted) && guided) {
+        for (side in pending.sides) {
+          if (is.null(side.lineage.edges) || side$backbone.edge %in% side.lineage.edges) {
+            before <- snapshot()
+            side.ok <- FALSE
+            for (attempt in seq_len(if (condition.sides && is.null(extinction.cache)) max.side.tries else 1L)) {
+              side.ok <- tryCatch({
+                simulate.side(side$parent, side$state, side$age)
+                TRUE
+              }, classe_reject = function(e) FALSE)
+              if (side.ok) break
+              restore(before)
+            }
+            side.attempts[side$parent] <- attempt
+            if (!side.ok) {
+              failed <- paste0("max_side_tries_", side$parent,
+                               "_extinction_before_present",
+                               " (founding state ", state.labels[side$state],
+                               ", age ", signif(side$age, 7), ")")
+              return(list(success = FALSE, reason = failed))
+            }
+          }
+        }
+      }
+      accepted
+    },
     classe_reject = function(e) {
       failed <<- "extra_extant"
       FALSE
@@ -711,7 +778,8 @@ mark.classe.td.backbone <- function(tree, node.states, tip.states, k,
        tree = graph$tree, tips = graph$tips, lineages = graph$lineages,
        events = event.table, node.map = graph$node.map,
        extra.extant = extant.counter,
-       n.events = n.events, root.state = root.state.used)
+       n.events = n.events, root.state = root.state.used,
+       branch.attempts = branch.attempts, side.attempts = side.attempts)
 }
 
 .classe_td_graph_to_simmap <- function(edges, tips, state.labels,

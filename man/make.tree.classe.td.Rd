@@ -47,7 +47,10 @@ max.t1. Next, the tree from epoch one is used to simulate the final tree with th
 The simulations are tested only with max.t1 and max.t2 arguments. Use max.taxa at your own risk.
 The argument single.lineage should be always set to TRUE.
 
-The returned data frame contains three attributes: attr(info, "info.epoch1") attr(info, "t.epoch1") attr(info, "t.total").
+The returned data frame stores the first-epoch table, epoch times, simulation
+parameters, number of states, and the complete anagenetic transition history
+as attributes. The history columns are lineage index, absolute event time,
+source state, destination state, lineage start time, and within-lineage time.
 }
 \examples{
 

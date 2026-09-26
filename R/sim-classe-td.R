@@ -38,6 +38,121 @@ pars.geosse2classe <- function(pars.ge)
 }
 
 
+.classe_td_history_table <- function(hist, info) {
+  if (!length(hist)) {
+    return(data.frame(
+      idx = integer(), t = numeric(), from = integer(), to = integer(),
+      x0 = numeric(), tc = numeric()
+    ))
+  }
+
+  ans <- as.data.frame(do.call(rbind, hist))
+  names(ans) <- c("idx", "t", "from", "to")
+  ans$idx <- as.integer(ans$idx)
+  ans$from <- as.integer(ans$from)
+  ans$to <- as.integer(ans$to)
+  ans$x0 <- info$start[match(ans$idx, info$idx)]
+  ans$tc <- ans$t - ans$x0
+  ans
+}
+
+.classe_td_join_maps <- function(first, second) {
+  if (!length(first))
+    return(second)
+  if (!length(second))
+    return(first)
+  if (identical(names(first)[length(first)], names(second)[1])) {
+    first[length(first)] <- first[length(first)] + second[1]
+    if (length(second) > 1L)
+      first <- c(first, second[-1L])
+    first
+  } else {
+    c(first, second)
+  }
+}
+
+.classe_td_drop_tip_simmap <- function(phy, tip) {
+  old.n.tip <- ape::Ntip(phy)
+  drop <- if (is.character(tip)) match(tip, phy$tip.label) else as.integer(tip)
+  drop <- drop[!is.na(drop)]
+  if (!length(drop))
+    return(phy)
+  if (old.n.tip - length(unique(drop)) < 2L)
+    return(NULL)
+
+  remove <- match(drop, phy$edge[, 2])
+  keep <- setdiff(seq_len(nrow(phy$edge)), remove)
+  phy$edge <- phy$edge[keep, , drop = FALSE]
+  phy$edge.length <- phy$edge.length[keep]
+  phy$maps <- phy$maps[keep]
+
+  # Remove ancestral edges that no longer lead to a retained terminal.
+  repeat {
+    dead <- setdiff(phy$edge[, 2], phy$edge[, 1])
+    dead <- dead[dead > old.n.tip]
+    if (!length(dead))
+      break
+    remove <- match(dead, phy$edge[, 2])
+    keep <- setdiff(seq_len(nrow(phy$edge)), remove)
+    phy$edge <- phy$edge[keep, , drop = FALSE]
+    phy$edge.length <- phy$edge.length[keep]
+    phy$maps <- phy$maps[keep]
+  }
+
+  # Discard a leading stem, matching table2tree(), then concatenate every
+  # remaining unary chain in root-to-tip map order.
+  repeat {
+    root <- setdiff(phy$edge[, 1], phy$edge[, 2])
+    root.edges <- which(phy$edge[, 1] == root)
+    if (length(root.edges) != 1L)
+      break
+    remove <- root.edges
+    keep <- setdiff(seq_len(nrow(phy$edge)), remove)
+    phy$edge <- phy$edge[keep, , drop = FALSE]
+    phy$edge.length <- phy$edge.length[keep]
+    phy$maps <- phy$maps[keep]
+  }
+
+  repeat {
+    parents <- unique(phy$edge[, 1])
+    out.degree <- vapply(parents, function(node) {
+      sum(phy$edge[, 1] == node)
+    }, integer(1))
+    unary <- parents[out.degree == 1L & parents %in% phy$edge[, 2]]
+    if (!length(unary))
+      break
+    node <- unary[1]
+    incoming <- which(phy$edge[, 2] == node)
+    outgoing <- which(phy$edge[, 1] == node)
+    phy$edge[incoming, 2] <- phy$edge[outgoing, 2]
+    phy$maps[[incoming]] <- .classe_td_join_maps(
+      phy$maps[[incoming]], phy$maps[[outgoing]]
+    )
+    phy$edge.length[incoming] <- sum(phy$maps[[incoming]])
+    keep <- setdiff(seq_len(nrow(phy$edge)), outgoing)
+    phy$edge <- phy$edge[keep, , drop = FALSE]
+    phy$edge.length <- phy$edge.length[keep]
+    phy$maps <- phy$maps[keep]
+  }
+
+  terminal.old <- setdiff(phy$edge[, 2], phy$edge[, 1])
+  phy$tip.label <- phy$tip.label[terminal.old]
+  phy$edge[match(terminal.old, phy$edge[, 2]), 2] <- seq_along(terminal.old)
+  internal.old <- sort(unique(phy$edge[, 1]))
+  internal.new <- seq_along(internal.old) + length(terminal.old)
+  for (z in seq_along(internal.old))
+    phy$edge[phy$edge == internal.old[z]] <- internal.new[z]
+  storage.mode(phy$edge) <- "integer"
+  phy$Nnode <- length(internal.old)
+  phy$node.label <- NULL
+  phy$tip.state <- NULL
+  phy$node.state <- NULL
+  phy$edge.state <- NULL
+  phy$mapped.edge <- NULL
+  phy
+}
+
+
 #' Converts episodic ClaSSE.td simulations to a tree
 #'
 #' @param info a table from make.tree.classe.td()
@@ -93,6 +208,196 @@ table2tree <- function(info) {
 }
 
 
+#' Convert an episodic ClaSSE simulation table to a stochastic map
+#'
+#' @param info A table returned by [make.tree.classe.td()]. Simulations made
+#'   with older versions of divextra do not contain the transition-history
+#'   attribute and can only be converted to constant-state edge maps.
+#' @param state.labels Optional character vector giving the plotted label for
+#'   states `1, ..., k`. For the three-state GeoSSE parameterization, for
+#'   example, use `c("A", "B", "AB")`.
+#'
+#' @return A tree of class `simmap` and `phylo`. Its `maps` element contains
+#'   the ordered state durations along every retained edge and `mapped.edge`
+#'   contains the total duration in each state.
+#'
+#' @description
+#' Converts the complete event table from [make.tree.classe.td()] into a
+#' `phytools`-compatible stochastic mapping tree. Extinct species are pruned in
+#' the same way as in [table2tree()]. Anagenetic transitions on retained and
+#' collapsed branches are preserved.
+#'
+#' @export
+#'
+#' @examples
+#' pars.ge <- matrix(
+#'   c(0.1, 0.1, 0.1, 0, 0, 0.1, 0.1,
+#'     0.3, 0.3, 0.3, 0, 0, 0.1, 0.1),
+#'   2, 7, byrow = TRUE
+#' )
+#' colnames(pars.ge) <- diversitree:::default.argnames.geosse()
+#' pars.cl <- t(apply(pars.ge, 1, pars.geosse2classe))
+#'
+#' set.seed(123)
+#' tb <- make.tree.classe.td(
+#'   pars.cl, k = 3, max.t1 = 10, max.t2 = 15,
+#'   x0 = 1, single.lineage = TRUE
+#' )
+#' simmap <- table2simmap(tb, state.labels = c("A", "B", "AB"))
+#' if (requireNamespace("phytools", quietly = TRUE)) {
+#'   colors <- c(A = "#D55E00", B = "#0072B2", AB = "#009E73")
+#'   phytools::plotSimmap(simmap, colors = colors, ftype = "i")
+#' }
+table2simmap <- function(info, state.labels = NULL) {
+  full <- diversitree:::me.to.ape.bisse(info[-1,], info$state[1])
+  if (is.null(full))
+    return(NULL)
+
+  hist <- full$hist
+  states <- c(
+    unname(full$tip.state), unname(full$node.state),
+    if (!is.null(hist) && nrow(hist)) c(hist$from, hist$to)
+  )
+  states <- as.integer(states[is.finite(states)])
+  k <- attr(info, "k")
+  if (is.null(k))
+    k <- if (length(states)) max(states) else 0L
+  k <- as.integer(k)
+  if (k < 1L)
+    stop("Could not determine the number of states")
+
+  if (is.null(state.labels))
+    state.labels <- as.character(seq_len(k))
+  if (length(state.labels) != k || anyNA(state.labels) ||
+      any(!nzchar(state.labels)) || anyDuplicated(state.labels)) {
+    stop("state.labels must contain k unique, non-empty labels")
+  }
+  state.labels <- as.character(state.labels)
+
+  if (is.null(hist)) {
+    warning(
+      "No transition history is stored in info; creating constant-state ",
+      "edge maps. Regenerate the table with make.tree.classe.td() to retain ",
+      "within-edge transitions."
+    )
+  }
+
+  node.names <- c(full$tip.label, full$node.label)
+  terminal.states <- c(unname(full$tip.state), unname(full$node.state))
+  tol <- 1e-10
+
+  maps <- lapply(seq_len(nrow(full$edge)), function(edge.index) {
+    child <- full$edge[edge.index, 2]
+    child.name <- node.names[child]
+    edge.length <- full$edge.length[edge.index]
+    edge.hist <- if (is.null(hist) || !nrow(hist)) {
+      NULL
+    } else {
+      hist[!is.na(hist$name2) & hist$name2 == child.name, , drop = FALSE]
+    }
+
+    if (!is.null(edge.hist) && nrow(edge.hist)) {
+      edge.hist <- edge.hist[order(edge.hist$tc), , drop = FALSE]
+      if (any(edge.hist$tc < -tol | edge.hist$tc > edge.length + tol))
+        stop("Stored transition time lies outside its retained edge")
+      transition.times <- pmin(edge.length, pmax(0, edge.hist$tc))
+      map.states <- c(edge.hist$from[1], edge.hist$to)
+    } else {
+      transition.times <- numeric()
+      map.states <- terminal.states[child]
+    }
+
+    durations <- diff(c(0, transition.times, edge.length))
+    positive <- durations > tol
+    durations <- durations[positive]
+    map.states <- map.states[positive]
+    if (!length(durations)) {
+      durations <- edge.length
+      map.states <- terminal.states[child]
+    }
+
+    map <- numeric()
+    for (z in seq_along(durations)) {
+      label <- state.labels[map.states[z]]
+      if (length(map) && identical(names(map)[length(map)], label)) {
+        map[length(map)] <- map[length(map)] + durations[z]
+      } else {
+        map <- c(map, stats::setNames(durations[z], label))
+      }
+    }
+    map
+  })
+
+  full$maps <- maps
+  full$mapped.edge <- matrix(
+    0, nrow = nrow(full$edge), ncol = k,
+    dimnames = list(
+      paste(full$edge[, 1], full$edge[, 2], sep = ","), state.labels
+    )
+  )
+  for (edge.index in seq_along(full$maps)) {
+    totals <- tapply(
+      as.numeric(full$maps[[edge.index]]),
+      names(full$maps[[edge.index]]), sum
+    )
+    full$mapped.edge[edge.index, names(totals)] <- totals
+  }
+  class(full) <- c("simmap", "phylo")
+
+  extinct <- full$tip.label[startsWith(full$tip.label, "ex")]
+  if (length(extinct)) {
+    phy <- .classe_td_drop_tip_simmap(full, extinct)
+    if (is.null(phy))
+      return(NULL)
+  } else {
+    phy <- full
+  }
+
+  mapped.edge <- matrix(
+    0, nrow = nrow(phy$edge), ncol = k,
+    dimnames = list(
+      paste(phy$edge[, 1], phy$edge[, 2], sep = ","), state.labels
+    )
+  )
+  for (edge.index in seq_along(phy$maps)) {
+    totals <- tapply(
+      as.numeric(phy$maps[[edge.index]]), names(phy$maps[[edge.index]]), sum
+    )
+    mapped.edge[edge.index, names(totals)] <- totals
+  }
+
+  phy$mapped.edge <- mapped.edge
+  phy$state.labels <- state.labels
+  phy$tip.state <- full$tip.state[phy$tip.label]
+  phy$edge.state <- match(
+    vapply(phy$maps, function(map) names(map)[length(map)], character(1)),
+    state.labels
+  )
+
+  # Pruning a simmap may collapse a chain of original lineages. The maps retain
+  # those segments, including instantaneous cladogenetic state changes.
+  phy$node.label <- sprintf("nd%d", seq_len(phy$Nnode))
+  phy$node.state <- stats::setNames(rep(NA_integer_, phy$Nnode), phy$node.label)
+  root <- setdiff(phy$edge[, 1], phy$edge[, 2])
+  phy$node.state[root - ape::Ntip(phy)] <- info$state[1]
+  internal.edges <- which(phy$edge[, 2] > ape::Ntip(phy))
+  phy$node.state[phy$edge[internal.edges, 2] - ape::Ntip(phy)] <-
+    phy$edge.state[internal.edges]
+  epoch1 <- attr(info, "info.epoch1")
+  phy$epoch1.extant.tree.depth <- attr(info, "t.epoch1") - epoch1$len[1]
+  phy$epoch12.tree.depth <- attr(info, "t.total") - info$len[1]
+  phy$epoch1.ntip <- sum(!epoch1$split & !epoch1$extinct)
+  phy$t.epoch1 <- attr(info, "t.epoch1")
+  phy$t.total <- attr(info, "t.total")
+  phy$t.regime.change <- phy$t.total - phy$t.epoch1
+  phy$sim.pars <- attr(info, "sim.pars")
+  phy$simulation.table <- info
+  phy$transition.history <- attr(info, "hist")
+  class(phy) <- c("simmap", "phylo")
+  phy
+}
+
+
 
 
 
@@ -123,7 +428,10 @@ table2tree <- function(info) {
 #' The argument single.lineage should be always set to TRUE.
 #'
 #'
-#' The returned data frame contains three attributes: attr(info, "info.epoch1") attr(info, "t.epoch1") attr(info, "t.total").
+#' The returned data frame stores the first-epoch table, epoch times, simulation
+#' parameters, number of states, and the complete anagenetic transition history
+#' as attributes. The history columns are lineage index, absolute event time,
+#' source state, destination state, lineage start time, and within-lineage time.
 #'
 #' @export
 #'
@@ -285,6 +593,8 @@ make.tree.classe.td <- function(pars.tb, k, max.taxa=Inf, max.t1=Inf, max.t2=Inf
   info1 <- data.frame(idx=seq_along(extinct), len=len, parent=parent,
                      start=start, state=states, extinct=extinct,
                      split=split)
+  attr(info1, "hist") <- .classe_td_history_table(hist, info1)
+  attr(info1, "k") <- k
   # if there no extant sp in epoch1 return Null
   tb.e1 <- diversitree:::me.to.ape.bisse(info1[-1,], info1$state[1])
   if (is.null(tb.e1))
@@ -372,23 +682,12 @@ make.tree.classe.td <- function(pars.tb, k, max.taxa=Inf, max.t1=Inf, max.t2=Inf
                      start=start, state=states, extinct=extinct,
                      split=split)
 
-  # hist <- as.data.frame(do.call(rbind, hist))
-  # if ( nrow(hist) == 0 )
-  #   hist <- as.data.frame(matrix(NA, 0, 4))
-  # names(hist) <- c("idx", "t", "from", "to")
-  # hist$x0 <- info$start[match(hist$idx, info$idx)]
-  # hist$tc <- hist$t - hist$x0
-
   #attr(info, "t") <- t
   attr(info, "info.epoch1") <- info1
   attr(info, "t.epoch1") <- t.epoch1 # time of epoch 1 (=max.t1)
   attr(info, "t.total") <- t # total time (=max.t2)
   attr(info, "sim.pars") <- pars.tb # parameters used in the simulation
-  #attr(info, "hist") <- hist
+  attr(info, "hist") <- .classe_td_history_table(hist, info)
+  attr(info, "k") <- k
   info
 }
-
-
-
-
-

@@ -1,0 +1,41 @@
+test_that("clade extraction preserves full-tree ASR node identities", {
+  tree <- ape::read.tree(text = "((a:1,b:1):1,(c:1,(d:0.5,e:0.5):0.5):1);")
+  tree$node.label <- paste0("node", seq_len(tree$Nnode))
+  nodes <- ape::Ntip(tree) + seq_len(tree$Nnode)
+  asr <- rbind(A = seq_along(nodes) / 5, B = 1 - seq_along(nodes) / 5)
+  tips <- setNames(c(1, 2, 1, 2, 1), tree$tip.label)
+  focal <- ape::getMRCA(tree, c("c", "d", "e"))
+  out <- extract.clade.asr(tree, focal, asr, tips)
+  expect_identical(rownames(out$node.probs), rownames(asr))
+  expect_equal(out$tip.states, tips[out$tree$tip.label])
+  for (i in seq_len(out$tree$Nnode)) {
+    original <- out$node.map$original.node[i]
+    expect_equal(unname(out$node.probs[, i]), unname(asr[, original - 5]))
+    expect_equal(out$tree$node.label[i], tree$node.label[original - 5])
+  }
+  expect_equal(out$node.map$original.node[1], focal)
+  expect_equal(colnames(out$node.probs), as.character(4:5))
+  colnames(asr) <- as.character(nodes)
+  shuffled <- extract.clade.asr(tree, focal, asr[, 4:1], tips)
+  expect_equal(out, shuffled)
+  tip.matrix <- rbind(A = as.numeric(tips == 1), B = as.numeric(tips == 2))
+  colnames(tip.matrix) <- names(tips)
+  expect_equal(extract.clade.asr(tree, focal, asr, tip.matrix)$tip.states,
+               tip.matrix[, out$tree$tip.label])
+  expect_error(extract.clade.asr(tree, 1, asr, tips), "internal node")
+  expect_error(extract.clade.asr(tree, focal, asr[, 1, drop = FALSE], tips), "missing nodes")
+})
+
+test_that("explicit state labels restore unnamed ASR without changing its values", {
+  tree <- ape::read.tree(text = "((a:1,b:1):1,c:2);")
+  asr <- matrix(c(.3,.7,.8,.2), 2)
+  tips <- c(a=1,b=2,c=1)
+  plain <- extract.clade.asr(tree, 4, asr, tips)
+  named <- extract.clade.asr(tree, 4, asr, tips, state.labels=c("A","A.S"))
+  expect_null(rownames(plain$node.probs))
+  expect_identical(rownames(named$node.probs), c("A","A.S"))
+  expect_equal(unname(named$node.probs),unname(plain$node.probs))
+  expect_identical(rownames(keep.tip.asr(named,c("a","b"))$node.probs), c("A","A.S"))
+  expect_error(extract.clade.asr(tree,4,asr,tips,state.labels="A"),"per ASR row")
+  expect_error(extract.clade.asr(tree,4,asr,tips,state.labels=c("A","A")),"unique")
+})
