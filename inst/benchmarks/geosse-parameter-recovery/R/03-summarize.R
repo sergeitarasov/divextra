@@ -85,6 +85,8 @@ for (file.number in seq_along(result.files)) {
     seed = result$seed,
     n_tip = result$n_tip,
     target_tips = result$scenario$target_tips,
+    epoch1_duration = result$epoch1_duration,
+    simulated_time = result$simulated_time,
     tree_height = result$tree_height,
     boundary_age = result$boundary_age,
     nominal_boundary_fraction = result$nominal_boundary_fraction,

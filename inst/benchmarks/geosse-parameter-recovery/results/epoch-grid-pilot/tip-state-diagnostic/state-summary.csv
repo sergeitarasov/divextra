@@ -1,0 +1,16 @@
+"scenario","n.A","n.B","n.AB","min.count","all.present","five.each"
+"all_rates_change_b05",77,106,44,44,5,5
+"all_rates_change_b25",75,76,45,39,5,5
+"all_rates_change_b50",178,164,92,92,5,5
+"constant_b05",105,109,20,20,5,5
+"constant_b25",36,42,10,10,5,4
+"constant_b50",56,72,13,13,5,5
+"contraction_only_b05",53,32,8,8,5,4
+"contraction_only_b25",65,74,21,21,5,5
+"contraction_only_b50",91,70,22,22,5,5
+"dispersal_only_b05",32,17,33,15,5,5
+"dispersal_only_b25",65,54,69,54,5,5
+"dispersal_only_b50",221,205,263,205,5,5
+"speciation_only_b05",269,143,36,36,5,4
+"speciation_only_b25",242,116,15,15,5,5
+"speciation_only_b50",153,176,25,25,5,5

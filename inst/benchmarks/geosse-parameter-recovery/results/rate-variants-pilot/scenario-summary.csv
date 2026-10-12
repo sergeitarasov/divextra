@@ -1,0 +1,6 @@
+"scenario","median.N","median.boundary.lineages","episodic.converged.starts","all.starts.agree","episodic.AIC.support"
+"baseline",75,8,14,2,4
+"slow_recent_s",49,15,15,3,0
+"higher_old_d",454,54,15,4,5
+"higher_old_x",40,9,13,3,0
+"constant",133,49,15,4,0

@@ -1,0 +1,16 @@
+"scenario","parameters","median.N","median.crossing","converged.starts","datasets.with.fit","all.three.agree","attempts","acceptance","total.duration"
+"all_rates_change_b05",6,258,104,15,5,5,6,0.833333333333333,48
+"all_rates_change_b25",6,191,14,15,5,5,14,0.357142857142857,30
+"all_rates_change_b50",6,432,12,15,5,4,500,0.01,18
+"speciation_only_b05",4,448,219,15,5,5,6,0.833333333333333,48
+"speciation_only_b25",4,374,20,15,5,5,15,0.333333333333333,36
+"speciation_only_b50",4,477,12,15,5,5,106,0.0471698113207547,24
+"dispersal_only_b05",4,82,66,15,5,4,8,0.625,48
+"dispersal_only_b25",4,183,33,15,5,5,5,1,42
+"dispersal_only_b50",4,689,19,15,5,4,27,0.185185185185185,42
+"contraction_only_b05",4,80,63,15,5,5,11,0.454545454545455,48
+"contraction_only_b25",4,153,50,15,5,5,12,0.416666666666667,48
+"contraction_only_b50",4,177,22,14,5,4,14,0.357142857142857,48
+"constant_b05",3,234,182,15,5,5,7,0.714285714285714,48
+"constant_b25",3,85,26,15,5,5,6,0.833333333333333,42
+"constant_b50",3,112,12,15,5,5,9,0.555555555555556,42

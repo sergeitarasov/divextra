@@ -1,0 +1,6 @@
+"scenario","parameters","median.N","median.crossing","converged.starts","datasets.with.fit","all.three.agree"
+"all_rates_change",6,152,14,12,4,4
+"speciation_only",4,136,19,15,5,5
+"dispersal_only",4,135,47,15,5,5
+"contraction_only",4,27,16,15,5,5
+"constant",3,71,36,15,5,5

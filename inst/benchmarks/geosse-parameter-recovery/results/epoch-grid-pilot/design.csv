@@ -1,0 +1,16 @@
+"scenario_id","s_old","d_old","x_old","s_recent","d_recent","x_recent","link_s","link_d","link_x","n_parameters","rate.scenario","fraction","total.time","old.time","recent.time","calibration.accepted"
+"all_rates_change_b05",0.1,0.03,0.02,0.3,0.2,0.05,FALSE,FALSE,FALSE,6,"all_rates_change",0.05,48,45.6,2.4,25
+"all_rates_change_b25",0.1,0.03,0.02,0.3,0.2,0.05,FALSE,FALSE,FALSE,6,"all_rates_change",0.25,30,22.5,7.5,13
+"all_rates_change_b50",0.1,0.03,0.02,0.3,0.2,0.05,FALSE,FALSE,FALSE,6,"all_rates_change",0.5,18,9,9,0
+"speciation_only_b05",0.1,0.03,0.02,0.3,0.03,0.02,FALSE,TRUE,TRUE,4,"speciation_only",0.05,48,45.6,2.4,24
+"speciation_only_b25",0.1,0.03,0.02,0.3,0.03,0.02,FALSE,TRUE,TRUE,4,"speciation_only",0.25,36,27,9,13
+"speciation_only_b50",0.1,0.03,0.02,0.3,0.03,0.02,FALSE,TRUE,TRUE,4,"speciation_only",0.5,24,12,12,3
+"dispersal_only_b05",0.1,0.03,0.02,0.1,0.2,0.02,TRUE,FALSE,TRUE,4,"dispersal_only",0.05,48,45.6,2.4,21
+"dispersal_only_b25",0.1,0.03,0.02,0.1,0.2,0.02,TRUE,FALSE,TRUE,4,"dispersal_only",0.25,42,31.5,10.5,21
+"dispersal_only_b50",0.1,0.03,0.02,0.1,0.2,0.02,TRUE,FALSE,TRUE,4,"dispersal_only",0.5,42,21,21,10
+"contraction_only_b05",0.1,0.03,0.02,0.1,0.03,0.05,TRUE,TRUE,FALSE,4,"contraction_only",0.05,48,45.6,2.4,23
+"contraction_only_b25",0.1,0.03,0.02,0.1,0.03,0.05,TRUE,TRUE,FALSE,4,"contraction_only",0.25,48,36,12,17
+"contraction_only_b50",0.1,0.03,0.02,0.1,0.03,0.05,TRUE,TRUE,FALSE,4,"contraction_only",0.5,48,24,24,10
+"constant_b05",0.1,0.03,0.02,0.1,0.03,0.02,TRUE,TRUE,TRUE,3,"constant",0.05,48,45.6,2.4,21
+"constant_b25",0.1,0.03,0.02,0.1,0.03,0.02,TRUE,TRUE,TRUE,3,"constant",0.25,42,31.5,10.5,23
+"constant_b50",0.1,0.03,0.02,0.1,0.03,0.02,TRUE,TRUE,TRUE,3,"constant",0.5,42,21,21,15

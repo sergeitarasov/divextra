@@ -1,5 +1,42 @@
 # Episodic GeoSSE parameter-recovery benchmark
 
+## Fixed-time pilot (current diagnostic design)
+
+The new pilot uses fixed epoch durations and five datasets for each of P01-P05,
+including changes in all three rates (P05). It uses independent calibration
+simulations to target information in the old epoch, then three independently
+perturbed starting vectors for each six-rate episodic fit. A per-start process
+limit of 90 seconds prevents a difficult fit from blocking the batch.
+
+```sh
+Rscript inst/benchmarks/geosse-parameter-recovery/R/06-fixed-time-pilot.R
+Rscript inst/benchmarks/geosse-parameter-recovery/R/07-report-fixed-time-pilot.R
+```
+
+Results, actual initial vectors, convergence diagnostics, PNG/PDF plots and a
+Markdown report are in `results/fixed-time-pilot/`. The 06 script regenerates
+that pilot directory's results when rerun; it does not resume existing fits.
+Earlier scripts and results below describe the previous nine-scenario pilot.
+The fixed-time pilot fits the episodic model only. Production epoch-position
+and tree-size experiments still require a finalized design.
+
+For the P05 nuisance profiles and numerical audit, run `R/08-profile-p05.R`
+then `R/09-report-p05-profiles.R` from this benchmark's script paths. Results
+and the report are in `results/fixed-time-pilot/profiles/`. These scripts fix
+each old-epoch focal rate in turn, optimize the other five rates from two
+starts, and compare integration tolerances and GSL steppers. Incomplete grid
+points and nuisance bounds are reported explicitly.
+
+The follow-up rate-variant pilot is run with `R/10-rate-variants-pilot.R` and
+reported with `R/11-report-rate-variants.R` (use the complete benchmark paths
+when invoking Rscript from the repository root). It includes a fresh P05
+baseline, slower recent speciation, higher old dispersal, higher old
+contraction, and a constant-rate control. Each tree is fitted with episodic
+and constant ClaSSE; control trees are also fitted with classical
+`diversitree::make.geosse()` under the same three shared-rate constraints.
+Results are in `results/rate-variants-pilot/`. The runner reuses saved fits;
+use a new output directory when changing the design or optimizer settings.
+
 This benchmark tests whether `divextra::make.classe.td()` recovers known
 GeoSSE parameters when rates differ between two time epochs. It is intended
 for the supplementary material of the Sunken Islands paper.
@@ -82,8 +119,8 @@ row 2 is compared with parameters ending in `.1`.
 
 ### Parameter scenarios
 
-Five parameter scenarios use a nominal 50% epoch boundary and approximately
-200 extant tips:
+Five parameter scenarios use a nominal 50% epoch boundary and exactly 200
+extant tips in every accepted simulation:
 
 1. constant rates;
 2. speciation shift;
@@ -104,10 +141,23 @@ the realized fraction of reconstructed tree height are saved.
 
 ### Tree-size scenarios
 
-The speciation-shift scenario with a 50% boundary is simulated at approximate
-median sizes of 50, 200, and 500 extant tips. Simulation duration, rather than
-post hoc selection of an exact tip count, controls tree size. This avoids
-conditioning parameter recovery on a narrow observed-tip interval.
+The speciation-shift scenario with a 50% boundary is simulated with exactly
+50, 200, and 500 extant tips. The requested size is passed directly to
+`make.tree.classe.td()` as `max.taxa`. Epoch 2 uses `max.t2 = Inf` so that an
+accepted simulation stops through the taxon limit rather than a time limit.
+
+The wrapper rejects a simulation unless all of the following are true:
+
+- epoch 1 reached its requested duration;
+- `table2tree()` returned exactly the requested number of extant tips;
+- total simulated time is finite and later than the epoch transition;
+- the transition lies within the reconstructed crown tree;
+- the reconstructed root state is valid.
+
+These checks avoid changing `make.tree.classe.td()`. The old calibration step
+currently supplies a reference duration used to place the epoch transition.
+It no longer determines the accepted number of tips. The realized epoch
+fraction is saved and must be inspected because final tree age is stochastic.
 
 ## Replication and starting points
 
@@ -214,6 +264,19 @@ inst/benchmarks/geosse-parameter-recovery/results/calibrated/scenarios-calibrate
 
 Inspect the calibrated durations and median tip counts before continuing.
 
+## Check the simulator before fitting
+
+This fast pilot simulates exact-tip trees without fitting either likelihood
+model. The optional argument gives the number of replicates per scenario.
+
+```sh
+Rscript inst/benchmarks/geosse-parameter-recovery/R/04-check-simulator.R 3
+```
+
+It checks the accepted tip counts and epoch placement and reports rejected
+attempts, extinct terminal lineages, realized boundary fractions, and runtime.
+Outputs are written to `results/simulator-check/`.
+
 ## Step 2: smoke test one replicate per scenario
 
 ```sh
@@ -240,6 +303,15 @@ Rscript inst/benchmarks/geosse-parameter-recovery/R/03-summarize.R
 The script writes dataset-level estimates, start-level optimization results,
 and scenario-level recovery summaries to `results/summaries/`.
 
+## Step 5: plot parameter recovery
+
+```sh
+Rscript inst/benchmarks/geosse-parameter-recovery/R/05-plot-parameter-recovery.R
+```
+
+This writes PDF and PNG versions of the estimated-versus-true plot and the
+scenario-level recovery-interval plot to `results/plots/`.
+
 Before the Roihu run, inspect:
 
 - the distribution of actual tip counts;
@@ -249,7 +321,7 @@ Before the Roihu run, inspect:
 - runtime as a function of tree size;
 - whether the old and recent epochs both contain enough tree history.
 
-## Step 5: send the production analysis to Roihu
+## Step 6: send the production analysis to Roihu
 
 Copy or clone the DivExtra repository on Roihu, install the same package
 checkout, and run calibration once if the calibrated CSV was not copied.
@@ -293,6 +365,58 @@ quantiles, recovery of the direction of epoch change, AIC support for the
 episodic model, and optimization agreement across starting points.
 
 ## Interpretation
+
+### Revised linked-rate design (next benchmark)
+
+`config/scenarios-linked.csv` records the agreed replacement design: six free
+parameters when all rates change, four when only one rate changes, and three
+when all rates are shared. Recent contraction is **0.05** in the all-rates-change
+and contraction-only scenarios; it remains **0.02** in the other scenarios.
+The `link_s`, `link_d`, and `link_x` columns specify equality constraints across
+epochs that must be imposed during inference, not just during simulation.
+Geographic symmetry is retained within each epoch.
+
+Run `R/12-linked-rate-pilot.R` and then `R/13-report-linked-rate-pilot.R`
+from the repository root. The runner reads these links and fits the correctly
+constrained model, with an additional classical GeoSSE fit for constant controls.
+It uses five trees per scenario, three starts, 30 old plus 6 recent time units,
+and saves to `results/linked-rate-pilot/`. This pilot does not yet vary epoch
+position or target tip number. The report records realized tip counts, crossing
+lineages, reconstructed branch exposure and branching events, and separately
+full-history event counts. Previous pilot scripts and results are unchanged.
+Use a fresh output directory if changing settings; existing fits are reused.
+
+`R/14-screen-tree-information.R` runs a simulation-only screening: 50 attempts
+for each of the five linked-rate scenarios at boundary ages 9, 18 and 27 within
+a fixed 36-unit stem simulation duration. These fractions are not fractions of
+the variable reconstructed crown age. It applies the proposed minima of 50 tips,
+10 crossing lineages and 10 reconstructed branching events per epoch, saving
+every attempt and conditional size distributions in `results/information-screen/`.
+The old-node rule actually requires 11 crossing lineages on a binary tree.
+Runs cut short by the 4000-taxon safety cap are reported separately; accepted
+tree distributions therefore do not describe the uncapped upper tail.
+
+### Calibrated 5/25/50-percent pilot, maximum 1000 tips
+
+Run `R/15-epoch-grid-pilot.R`, then `R/16-report-epoch-grid-pilot.R`.
+The new output directory is `results/epoch-grid-pilot/`. All five rate scenarios
+are crossed with all three boundaries, with five fresh accepted trees per cell.
+Rates and model links remain unchanged. Only total simulation duration is
+calibrated separately per cell, using 30 independent attempts at each duration
+18, 24, 30, 36, 42 and 48. Highest acceptance wins; ties favor median size nearest
+200 tips. If no candidate accepts a tree, the shortest duration is the explicit
+fallback and final generation still must obtain all five qualifying trees.
+Selection requires 50--1000 tips, at least 10 crossing lineages and 10 branching
+events per epoch. The simulator is unchanged; early cap stops are rejected.
+Calibration and recovery use independent seeds. All rejection attempts are saved.
+
+Three optimization starts fit each correctly linked model; the constant controls
+also receive classical GeoSSE fits. The report checks full-vector likelihood
+equivalence, summarizes convergence and recovery, and fits exploratory
+cell-adjusted error regressions separately for each independent parameter and
+information predictor. HC3 intervals describe regression slopes, not parameter
+recovery coverage. Both absolute log10 error and bounded symmetric error are
+reported; selected-sample associations are not causal effects.
 
 The empirical 95% interval across recovered estimates describes the sampling
 distribution of the estimator. It is not a confidence interval calculated for

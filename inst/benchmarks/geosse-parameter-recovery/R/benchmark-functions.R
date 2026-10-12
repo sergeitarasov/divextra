@@ -216,19 +216,85 @@ calibrate_scenario_duration <- function(
   )
 }
 
+check_benchmark_simulation <- function(
+  simulation.table,
+  tree,
+  target.tips,
+  epoch1.duration,
+  tolerance = 1e-8
+) {
+  if (is.null(simulation.table)) {
+    return(list(accepted = FALSE, reason = "total_extinction"))
+  }
+
+  if (is.null(tree)) {
+    return(list(accepted = FALSE, reason = "tree_conversion_failed"))
+  }
+
+  epoch1.time <- attr(simulation.table, "t.epoch1")
+
+  if (
+    is.null(epoch1.time) ||
+    !is.finite(epoch1.time) ||
+    epoch1.time < epoch1.duration - tolerance
+  ) {
+    return(list(accepted = FALSE, reason = "target_reached_in_epoch1"))
+  }
+
+  observed.tips <- ape::Ntip(tree)
+
+  if (observed.tips != target.tips) {
+    return(list(accepted = FALSE, reason = "wrong_number_of_tips"))
+  }
+
+  simulated.time <- attr(simulation.table, "t.total")
+
+  if (
+    is.null(simulated.time) ||
+    !is.finite(simulated.time) ||
+    simulated.time <= epoch1.duration
+  ) {
+    return(list(accepted = FALSE, reason = "invalid_total_time"))
+  }
+
+  tree.height <- max(ape::node.depth.edgelength(tree))
+  boundary.age <- simulated.time - epoch1.duration
+
+  if (
+    !is.finite(tree.height) ||
+    boundary.age <= 0 ||
+    boundary.age >= tree.height
+  ) {
+    return(list(accepted = FALSE, reason = "boundary_outside_reconstructed_tree"))
+  }
+
+  list(
+    accepted = TRUE,
+    reason = "accepted",
+    observed.tips = observed.tips,
+    epoch1.time = epoch1.time,
+    simulated.time = simulated.time,
+    tree.height = tree.height,
+    boundary.age = boundary.age,
+    realized.boundary.fraction = boundary.age / tree.height
+  )
+}
+
 simulate_benchmark_dataset <- function(
   scenario,
   replicate.number,
   maximum.attempts = 500
 ) {
   simulation.parameters <- make_simulation_parameters(scenario)
-  total.time <- scenario$total_time
-  boundary.age <- total.time * scenario$boundary_fraction
-  old.duration <- total.time - boundary.age
-  maximum.taxa <- max(5000, scenario$target_tips * 20)
+  reference.total.time <- scenario$total_time
+  reference.boundary.age <-
+    reference.total.time * scenario$boundary_fraction
+  old.duration <- reference.total.time - reference.boundary.age
+  target.tips <- as.integer(scenario$target_tips)
 
   seed <- scenario$scenario_number * 100000 + replicate.number
   set.seed(seed)
+  rejection.reasons <- character()
 
   for (attempt.number in seq_len(maximum.attempts)) {
     simulated.root.state <- sample(1:3, size = 1)
@@ -236,20 +302,15 @@ simulate_benchmark_dataset <- function(
     simulation.table <- divextra::make.tree.classe.td(
       pars.tb = simulation.parameters$classe,
       k = 3,
-      max.taxa = maximum.taxa,
+      max.taxa = target.tips,
       max.t1 = old.duration,
-      max.t2 = total.time,
+      max.t2 = Inf,
       x0 = simulated.root.state,
       single.lineage = TRUE
     )
 
     if (is.null(simulation.table)) {
-      next
-    }
-
-    simulated.time <- attr(simulation.table, "t.total")
-
-    if (!isTRUE(all.equal(simulated.time, total.time, tolerance = 1e-8))) {
+      rejection.reasons <- c(rejection.reasons, "total_extinction")
       next
     }
 
@@ -258,13 +319,15 @@ simulate_benchmark_dataset <- function(
       error = function(error) NULL
     )
 
-    if (is.null(tree) || ape::Ntip(tree) < 2) {
-      next
-    }
+    checks <- check_benchmark_simulation(
+      simulation.table = simulation.table,
+      tree = tree,
+      target.tips = target.tips,
+      epoch1.duration = old.duration
+    )
 
-    tree.height <- max(ape::node.depth.edgelength(tree))
-
-    if (tree.height <= boundary.age) {
+    if (!checks$accepted) {
+      rejection.reasons <- c(rejection.reasons, checks$reason)
       next
     }
 
@@ -275,8 +338,22 @@ simulate_benchmark_dataset <- function(
       reconstructed.root.state < 1 ||
       reconstructed.root.state > 3
     ) {
+      rejection.reasons <- c(rejection.reasons, "invalid_root_state")
       next
     }
+
+    rejection.counts <- table(factor(
+      rejection.reasons,
+      levels = c(
+        "total_extinction",
+        "tree_conversion_failed",
+        "target_reached_in_epoch1",
+        "wrong_number_of_tips",
+        "invalid_total_time",
+        "boundary_outside_reconstructed_tree",
+        "invalid_root_state"
+      )
+    ))
 
     return(list(
       seed = seed,
@@ -285,9 +362,12 @@ simulate_benchmark_dataset <- function(
       tree = tree,
       simulated.root.state = simulated.root.state,
       reconstructed.root.state = reconstructed.root.state,
-      boundary.age = boundary.age,
-      tree.height = tree.height,
-      realized.boundary.fraction = boundary.age / tree.height,
+      epoch1.duration = old.duration,
+      simulated.time = checks$simulated.time,
+      boundary.age = checks$boundary.age,
+      tree.height = checks$tree.height,
+      realized.boundary.fraction = checks$realized.boundary.fraction,
+      rejection.counts = rejection.counts,
       parameters = simulation.parameters
     ))
   }

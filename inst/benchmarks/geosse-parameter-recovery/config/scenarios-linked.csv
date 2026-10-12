@@ -1,0 +1,6 @@
+scenario_id,s_old,d_old,x_old,s_recent,d_recent,x_recent,link_s,link_d,link_x,n_parameters
+all_rates_change,0.10,0.03,0.02,0.30,0.20,0.05,FALSE,FALSE,FALSE,6
+speciation_only,0.10,0.03,0.02,0.30,0.03,0.02,FALSE,TRUE,TRUE,4
+dispersal_only,0.10,0.03,0.02,0.10,0.20,0.02,TRUE,FALSE,TRUE,4
+contraction_only,0.10,0.03,0.02,0.10,0.03,0.05,TRUE,TRUE,FALSE,4
+constant,0.10,0.03,0.02,0.10,0.03,0.02,TRUE,TRUE,TRUE,3

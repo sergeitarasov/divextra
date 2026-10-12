@@ -120,6 +120,8 @@ result <- list(
   simulation_table = simulation$table,
   tree = tree,
   n_tip = ape::Ntip(tree),
+  epoch1_duration = simulation$epoch1.duration,
+  simulated_time = simulation$simulated.time,
   tree_height = simulation$tree.height,
   boundary_age = simulation$boundary.age,
   nominal_boundary_fraction = scenario$boundary_fraction,

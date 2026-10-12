@@ -80,3 +80,58 @@ test_that("GeoSSE conversion places rates in the expected ClaSSE entries", {
   expect_equal(unname(classe.parameters["q13"]), 0.16)
   expect_equal(unname(classe.parameters["q23"]), 0.17)
 })
+
+test_that("benchmark simulation checks require the exact target size", {
+  benchmark.file <- file.path(
+    "..", "..", "inst", "benchmarks",
+    "geosse-parameter-recovery", "R", "benchmark-functions.R"
+  )
+  source(benchmark.file, local = TRUE)
+
+  tree <- ape::read.tree(text = "((a:2,b:2):1,c:3);")
+  simulation.table <- data.frame(lineage = 1)
+  attr(simulation.table, "t.epoch1") <- 1
+  attr(simulation.table, "t.total") <- 3
+
+  accepted <- check_benchmark_simulation(
+    simulation.table = simulation.table,
+    tree = tree,
+    target.tips = 3,
+    epoch1.duration = 1
+  )
+
+  rejected <- check_benchmark_simulation(
+    simulation.table = simulation.table,
+    tree = tree,
+    target.tips = 4,
+    epoch1.duration = 1
+  )
+
+  expect_true(accepted$accepted)
+  expect_equal(accepted$observed.tips, 3)
+  expect_false(rejected$accepted)
+  expect_equal(rejected$reason, "wrong_number_of_tips")
+})
+
+test_that("benchmark simulation checks reject an early epoch-1 stop", {
+  benchmark.file <- file.path(
+    "..", "..", "inst", "benchmarks",
+    "geosse-parameter-recovery", "R", "benchmark-functions.R"
+  )
+  source(benchmark.file, local = TRUE)
+
+  tree <- ape::read.tree(text = "((a:2,b:2):1,c:3);")
+  simulation.table <- data.frame(lineage = 1)
+  attr(simulation.table, "t.epoch1") <- 0.75
+  attr(simulation.table, "t.total") <- 3
+
+  checked <- check_benchmark_simulation(
+    simulation.table = simulation.table,
+    tree = tree,
+    target.tips = 3,
+    epoch1.duration = 1
+  )
+
+  expect_false(checked$accepted)
+  expect_equal(checked$reason, "target_reached_in_epoch1")
+})
