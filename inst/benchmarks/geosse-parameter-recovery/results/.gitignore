@@ -1,0 +1,5 @@
+calibrated/*.csv
+raw/
+logs/
+summaries/*.csv
+!.gitignore

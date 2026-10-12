@@ -1,0 +1,70 @@
+# Parameters for constant GeoSSE with two regions (A, B) and three states:
+# A, B, and A.B.
+states: [A, B, A.B]
+
+# The constant comparison is represented with two epochs whose rate
+# parameters are constrained to be identical. This lets it use the same
+# make.classe.td() likelihood machinery as the episodic model.
+n.epoch: 2
+
+# Placeholder only. The benchmark replaces this value with the simulated
+# boundary age before creating the likelihood constraints.
+epoch.times: [1]
+
+#---------------- Epoch 1: recent, tipward epoch
+1:
+  # Speciation without geographic change. These correspond to lambda_iii
+  # terms, such as A -> (A, A) and B -> (B, B).
+  lambda_unit_regions:
+    A: s
+    B: s
+
+  # Speciation when the ancestral lineage occupies the combined region A.B.
+  # Entries are ordered as:
+  # [A.B -> (A, B), A.B -> (A, A.B), A.B -> (B, A.B)].
+  lambda_comb_regions:
+    A.B: [s, s, s]
+
+  # Range expansion. For example, A -> A.B and B -> A.B.
+  # These are q parameters in the ClaSSE representation.
+  Q_dQ:
+    A: [d]
+    B: [d]
+
+  # Extinction from a single-area state. For example, extinction in A or B.
+  # These are mu parameters in the ClaSSE representation.
+  mu:
+    A: x
+    B: x
+
+  # Range contraction from the combined state. For example, A.B -> A or B.
+  # These are q parameters in the ClaSSE representation.
+  Q_xQ:
+    A.B: [x, x]
+
+#---------------- Epoch 2: old, rootward epoch
+2:
+  # The same parameter names used in epoch 1 enforce the constant model.
+  # Speciation without geographic change.
+  lambda_unit_regions:
+    A: s
+    B: s
+
+  # Speciation from the combined state. Entries are ordered as:
+  # [A.B -> (A, B), A.B -> (A, A.B), A.B -> (B, A.B)].
+  lambda_comb_regions:
+    A.B: [s, s, s]
+
+  # Range expansion: A -> A.B and B -> A.B.
+  Q_dQ:
+    A: [d]
+    B: [d]
+
+  # Extinction from the single-area states A and B.
+  mu:
+    A: x
+    B: x
+
+  # Range contraction from A.B to A or B.
+  Q_xQ:
+    A.B: [x, x]
