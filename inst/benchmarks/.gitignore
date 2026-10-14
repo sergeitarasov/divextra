@@ -1,0 +1,16 @@
+# Generated raw data: archive separately for publication.
+**/datasets/
+**/results/
+**/provenance/*.tar.gz
+**/provenance/*.rds
+**/preparation/proposals.csv
+**/preparation/*checkpoint*
+**/preparation/*.rds
+**/summary/all-starts.csv
+**/summary/starts.csv
+**/summary/recovery.csv
+**/summary/best-fits.csv
+**/slurm-*.out
+**/summary-*.out
+**/*.tmp
+# The preserved pre-migration project copy is not a second GitHub run.

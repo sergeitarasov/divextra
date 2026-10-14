@@ -1,0 +1,3 @@
+# Preserve the historical files already tracked before the move, including results.
+# Parent benchmark ignore rules apply only to new runs, not this archived snapshot.
+!**

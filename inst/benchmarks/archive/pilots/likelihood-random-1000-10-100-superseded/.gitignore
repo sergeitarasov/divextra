@@ -1,0 +1,4 @@
+# Keep this small validation bundle's numerical results visible in Git.
+!results/
+!results/**
+results/checkpoint.rds

@@ -6,3 +6,4 @@
 ^Meta$
 ^sim-on-tree($|/)
 ^\.DS_Store$
+^inst/benchmarks($|/)
