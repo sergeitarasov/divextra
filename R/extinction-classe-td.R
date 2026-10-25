@@ -103,6 +103,10 @@
       fraction <- rep(c(.25, .5, .75), each = n - 1L)
       interval <- rep(seq_len(n - 1L), 3L)
       probe <- left[interval] + width[interval] * fraction
+      # The probe can round away from its nominal quarter/midpoint near a
+      # nonzero epoch boundary. Match the actual representable age used by
+      # the ODE and approxfun, including probes rounded to interval endpoints.
+      fraction <- (probe - left[interval]) / width[interval]
       all.times <- sort(unique(c(grid, probe)))
       all.values <- solve.grid(all.times)
       yy <- all.values[match(grid, all.times), , drop = FALSE]
