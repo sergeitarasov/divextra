@@ -1,3 +1,0 @@
-Source commit: 4aa1513ca3c1f9aa493f0ffae779cf67505f2e8e
-Clean source snapshot; all five critical source definitions match local installed runtime.
-Simulation additionally applies the documented local unsplit-stem safeguard.

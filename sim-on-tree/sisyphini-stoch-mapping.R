@@ -1,4 +1,4 @@
-devtools::load_all("/Users/taravser/GitHub/divextra")
+devtools::load_all(".") # Run from the package root.
 library(ape)
 library(phytools)
 

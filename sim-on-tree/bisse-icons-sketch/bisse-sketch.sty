@@ -1,0 +1,47 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{bisse-sketch}[2026/10/16 BiSSE icons matching the supplied sketch]
+\RequirePackage{tikz}
+\RequirePackage{graphicx}
+\definecolor{bisseBlue}{HTML}{165A86}
+\definecolor{bisseOrange}{HTML}{F3B86A}
+\definecolor{bisseOrangeOutline}{HTML}{BA7825}
+\definecolor{bisseExtinct}{HTML}{D7263D}
+\definecolor{bisseDark}{HTML}{303840}
+\tikzset{bsline/.style={draw=bisseDark,line width=1pt,line cap=butt,line join=miter},
+ bs0/.style={draw=bisseOrangeOutline,fill=bisseOrange,line width=1pt},
+ bs1/.style={draw=bisseBlue,fill=bisseBlue,line width=1pt}}
+\newcommand{\bsCross}[2]{\draw[draw=bisseExtinct,line width=1.9pt,line cap=butt]
+ (#1-.12,#2-.16)--(#1+.12,#2+.16) (#1-.12,#2+.16)--(#1+.12,#2-.16);}
+\newcommand{\bsBegin}{\begin{tikzpicture}[baseline=0pt]
+ \path[use as bounding box] (-.32,-1.12) rectangle (2.02,1.12);}
+\newcommand{\bsEnd}{\end{tikzpicture}}
+% States read left to right; touching blocks, no arrow or number.
+\newcommand{\bisseBlocks}[3][24mm]{\resizebox{#1}{!}{%
+ \begin{tikzpicture}[baseline=0pt]
+ \path[use as bounding box] (-.03,-.4) rectangle (2.43,.4);
+ \path[bs#2] (0,-.3) rectangle (1.2,.3);
+ \path[bs#3] (1.2,-.3) rectangle (2.4,.3);
+ \end{tikzpicture}}}
+% Parent circle at the middle of the vertical branch, as in the reference.
+% Last argument is the y sign of the extinct daughter (+1 upper, -1 lower).
+\newcommand{\bisseSketchSplit}[3][22mm]{\resizebox{#1}{!}{\bsBegin
+ \draw[bsline] (1.22,.85)--(0,.85)--(0,-.85)--(1.22,-.85);
+ \path[bs#2] (0,0) circle (.20);
+ \path[bs#2] (1.22,.85) circle (.20);
+ \path[bs#2] (1.22,-.85) circle (.20);
+ \bsCross{1.70}{#3*.85}\bsEnd}}
+\newcommand{\bisseUpper}[2][22mm]{\bisseSketchSplit[#1]{#2}{1}}
+\newcommand{\bisseLower}[2][22mm]{\bisseSketchSplit[#1]{#2}{-1}}
+\newcommand{\bisseDeath}[1][18mm]{\resizebox{#1}{!}{%
+ \begin{tikzpicture}[baseline=0pt]
+ \path[use as bounding box] (-.15,-.4) rectangle (1.65,.4);
+ \draw[draw=bisseDark,line width=3.5pt,line cap=butt] (0,0)--(1.05,0) (0,-.19)--(0,.19);
+ \bsCross{1.4}{0}\end{tikzpicture}}}
+% Slash-circle is a custom legend symbol for no event, not literal extinction.
+\newcommand{\bisseNoEvent}[1][9mm]{\resizebox{#1}{!}{%
+ \begin{tikzpicture}[baseline=0pt]
+ \path[use as bounding box] (-.46,-.46) rectangle (.46,.46);
+ \draw[draw=bisseDark,line width=2.5pt] (0,0) circle (.31);
+ \draw[draw=bisseDark,line width=2.5pt,line cap=butt] (-.36,-.39)--(.36,.39);
+ \end{tikzpicture}}}
+\endinput

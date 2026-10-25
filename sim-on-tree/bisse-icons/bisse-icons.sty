@@ -1,0 +1,53 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{bisse-icons}[2026/10/16 Simple accessible BiSSE vector icons]
+\RequirePackage{tikz}
+\RequirePackage{graphicx}
+\usetikzlibrary{arrows.meta}
+% Okabe-Ito blue and vermillion; state also encoded by fill and numeral.
+\definecolor{bisseZero}{HTML}{0072B2}
+\definecolor{bisseOne}{HTML}{D55E00}
+\definecolor{bisseInk}{HTML}{303840}
+\tikzset{bisse line/.style={line width=.85pt,line cap=round,line join=round},
+ bisse arrow/.style={-{Stealth[length=1.7mm,width=1.4mm]}},
+ bisse state 0/.style={circle,draw=bisseZero,fill=white,text=bisseZero,
+   line width=.85pt,minimum size=3.8mm,inner sep=0pt,font=\sffamily\bfseries\scriptsize},
+ bisse state 1/.style={circle,draw=bisseOne,fill=bisseOne,text=white,
+   line width=.85pt,minimum size=3.8mm,inner sep=0pt,font=\sffamily\bfseries\scriptsize}}
+\newcommand{\bisseColor}[1]{\ifnum#1=0 bisseZero\else bisseOne\fi}
+\newcommand{\bisseStart}{\begin{tikzpicture}[bisse line,baseline=0pt]
+  \path[use as bounding box] (-.25,-.85) rectangle (3.1,.85);}
+\newcommand{\bisseStop}{\end{tikzpicture}}
+\newcommand{\bisseCross}[2]{\draw[bisseInk,line width=1.1pt]
+ (#1-.12,#2-.12)--(#1+.12,#2+.12) (#1-.12,#2+.12)--(#1+.12,#2-.12);}
+% Width includes a shared bounding box, so icons align consistently in tables.
+\newcommand{\bisseChange}[3][30mm]{\resizebox{#1}{!}{\bisseStart
+ \node[bisse state #2] (a) at (0,0) {#2};
+ \node[bisse state #3] (b) at (2.8,0) {#3};
+ \draw[bisseInk,bisse arrow] (a)--(b);\bisseStop}}
+\newcommand{\bisseNothing}[2][30mm]{\resizebox{#1}{!}{\bisseStart
+ \node[bisse state #2] (a) at (0,0) {#2};
+ \node[bisse state #2] (b) at (2.8,0) {#2};
+ \draw[\bisseColor{#2},bisse arrow] (a)--(b);\bisseStop}}
+\newcommand{\bisseExtinction}[2][30mm]{\resizebox{#1}{!}{\bisseStart
+ \node[bisse state #2] (a) at (0,0) {#2};
+ \draw[\bisseColor{#2}] (a)--(2.65,0);\bisseCross{2.8}{0}\bisseStop}}
+\newcommand{\bisseSpeciation}[2][30mm]{\resizebox{#1}{!}{\bisseStart
+ \node[bisse state #2] (a) at (0,0) {#2};
+ \node[bisse state #2] (b) at (2.8,.6) {#2};
+ \node[bisse state #2] (c) at (2.8,-.6) {#2};
+ \draw[\bisseColor{#2}] (a)--(.85,0);
+ \draw[\bisseColor{#2},bisse arrow] (.85,0)--(b);
+ \draw[\bisseColor{#2},bisse arrow] (.85,0)--(c);\bisseStop}}
+% Last argument is +1 for upper daughter extinction, -1 for lower.
+\newcommand{\bisseHidden}[3][30mm]{\resizebox{#1}{!}{\bisseStart
+ \node[bisse state #2] (a) at (0,0) {#2};
+ \node[bisse state #2] (live) at (2.8,-#3*.6) {#2};
+ \node[bisse state #2] (dead) at (1.9,#3*.6) {#2};
+ \draw[\bisseColor{#2}] (a)--(.85,0);
+ \draw[\bisseColor{#2},bisse arrow] (.85,0)--(live);
+ \draw[\bisseColor{#2},dash pattern=on 2pt off 1.5pt] (.85,0)--(dead);
+ \draw[\bisseColor{#2},dash pattern=on 2pt off 1.5pt] (dead)--(2.65,#3*.6);
+ \bisseCross{2.8}{#3*.6}\bisseStop}}
+\newcommand{\bisseHiddenUpper}[2][30mm]{\bisseHidden[#1]{#2}{1}}
+\newcommand{\bisseHiddenLower}[2][30mm]{\bisseHidden[#1]{#2}{-1}}
+\endinput

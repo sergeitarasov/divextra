@@ -28,6 +28,9 @@
 #'   complete intended backbone, including any unselected sister tips, as input.
 #' @param side.lineage.mode Either `"all"` (default, unrestricted side trees)
 #'   or `"extinct_clades"` (each expanded side clade must die out completely).
+#' @param expand.side.lineages Logical; FALSE skips growing all side trees,
+#'   retaining hidden births and their states. In tree-conditioned mode E and
+#'   all backbone conditioning remain unchanged. TRUE preserves the default.
 #' @param max.side.tries Maximum attempts per expanded side clade to achieve
 #'   extinction when `extinction.sampler="rejection"`. Exhaustion fails the map;
 #'   no side lineage is silently omitted. Unused by the direct sampler.
@@ -161,7 +164,10 @@ make.simmap.classe.td <- function(
     max.taxa = 100000L, seed = NULL, side.lineage.tips = NULL,
     side.lineage.mode = c("all", "extinct_clades"), max.side.tries = 10000L,
     extinction.sampler = c("direct", "rejection"), extinction.control = list(),
-    backbone.method = c("asr-weighted", "tree-conditioned"), root.prior = NULL) {
+    backbone.method = c("asr-weighted", "tree-conditioned"), root.prior = NULL,
+    expand.side.lineages = TRUE) {
+  if (!is.logical(expand.side.lineages) || length(expand.side.lineages) != 1L ||
+      is.na(expand.side.lineages)) stop("expand.side.lineages must be TRUE or FALSE")
   backbone.method <- match.arg(backbone.method)
   tree.conditioned <- backbone.method == "tree-conditioned"
   if (tree.conditioned && missing(side.lineage.mode)) side.lineage.mode <- "extinct_clades"
@@ -214,6 +220,7 @@ make.simmap.classe.td <- function(
     }
     side.edges <- which(eligible)
   }
+  if (!expand.side.lineages) side.edges <- integer(0)
   root.source <- if (is.null(root.p)) "node-ASR" else "custom"
   if (is.null(root.p))
     root.p <- backbone$node.probs[, as.character(backbone$root)]
@@ -254,7 +261,7 @@ make.simmap.classe.td <- function(
     ans <- .simulate_classe_td_once(
       backbone, schedule, max.events, max.taxa, max.branch.tries,
       guided = TRUE, initial.root.state = root.state,
-      side.lineage.edges = if (is.null(side.lineage.tips)) NULL else side.edges,
+      side.lineage.edges = if (expand.side.lineages && is.null(side.lineage.tips)) NULL else side.edges,
       side.lineage.mode = side.lineage.mode, max.side.tries = max.side.tries,
       extinction.cache = extinction.cache, descendant.cache = descendant.cache
     )
@@ -284,6 +291,7 @@ make.simmap.classe.td <- function(
         descendant=lapply(descendant.cache$branches,function(x)x$diagnostics))
     }
     ans$simulation <- i
+    ans$expand.side.lineages <- expand.side.lineages
     ans$side.lineage.tips <- side.lineage.tips
     ans$side.lineage.edges <- side.edges
     ans$side.lineage.mode <- side.lineage.mode

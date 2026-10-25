@@ -1,6 +1,0 @@
-"id","rate","value","error"
-"P05-1","mu1.2",2,"! callr subprocess failed: could not start R, exited with non-zero status, has crashed or was killed"
-"P05-3","mu1.2",0.6,"! callr subprocess failed: could not start R, exited with non-zero status, has crashed or was killed"
-"P05-4","q13.2",10,"! callr subprocess failed: could not start R, exited with non-zero status, has crashed or was killed"
-"P05-4","mu1.2",0.6,"! callr subprocess failed: could not start R, exited with non-zero status, has crashed or was killed"
-"P05-4","mu1.2",2,"! callr subprocess failed: could not start R, exited with non-zero status, has crashed or was killed"

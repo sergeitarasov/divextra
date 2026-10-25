@@ -1,6 +1,0 @@
-"scenario_id","scenario_group","description","s_old","d_old","x_old","s_recent","d_recent","x_recent","boundary_fraction","target_tips","scenario_number","old.time","recent.time"
-"P01","parameters","Constant rates",0.15,0.1,0.05,0.15,0.1,0.05,0.5,200,1,25,6
-"P02","parameters","Speciation shift",0.1,0.1,0.05,0.3,0.1,0.05,0.5,200,2,35,6
-"P03","parameters","Dispersal shift",0.15,0.03,0.05,0.15,0.2,0.05,0.5,200,3,25,6
-"P04","parameters","Contraction shift",0.15,0.1,0.02,0.15,0.1,0.15,0.5,200,4,20,6
-"P05","parameters","All rates shift",0.1,0.03,0.02,0.3,0.2,0.15,0.5,200,5,30,6

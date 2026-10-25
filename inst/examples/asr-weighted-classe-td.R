@@ -1,4 +1,4 @@
-# Run after devtools::load_all('/Users/taravser/GitHub/divextra').
+# Run from the package root after devtools::load_all('.').
 # Three-state, three-tip illustration; forward simulation uses the same rates.
 library(divextra)
 pars.ge <- matrix(c(

@@ -1,0 +1,306 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=25mm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,enumitem}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue]{hyperref}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlist{nosep,leftmargin=*}
+\newcommand{\Prob}{\mathbb{P}}
+\title{Conditional waiting times:\\from a three-state CTMC to GeoSSE}
+\author{A worked note accompanying the DivExtra GeoSSE demonstration}
+\date{14 October 2026}
+\begin{document}
+\maketitle
+
+\section{Start here: success and waiting}
+We start in B at time 0. Define:
+\begin{itemize}
+\item \textbf{Success:} the state at time 1 is A.
+\item \textbf{Waiting:} no change occurs during the first \(w\) units.
+\end{itemize}
+We want:
+\[
+S(w)=\Prob(\text{waiting}\mid\text{success}).
+\]
+By the definition of conditional probability,
+\[
+\Prob(\text{waiting}\mid\text{success})
+=\frac{\Prob(\text{waiting AND success})}{\Prob(\text{success})}.
+\]
+\textbf{The denominator:} starting from B, the probability of ending in A
+after one unit is, by definition,
+\[
+\Prob(\text{success})=h_B(1).
+\]
+\textbf{The numerator:} to both wait and succeed, two successive things must happen:
+\begin{enumerate}
+\item \textbf{No change for \(w\) units.} The total rate of leaving B is 2,
+so this has probability \(e^{-2w}\).
+\item \textbf{Then end in A after the remaining \(1-w\) units.}
+Because no change occurred, we are still in B. The Markov property says the
+remaining success probability is \(h_B(1-w)\).
+\end{enumerate}
+Multiply these successive probabilities:
+\[
+\Prob(\text{waiting AND success})=e^{-2w}h_B(1-w).
+\]
+Divide by the probability of success:
+\begin{equation}
+\boxed{S(w)=\frac{e^{-2w}h_B(1-w)}{h_B(1)}}.
+\label{eq:key}
+\end{equation}
+\textbf{In words:}
+\begin{quote}
+Among all histories that end in A, what fraction spent their first \(w\)
+units without changing?
+\end{quote}
+That fraction is exactly \(S(w)\). We are \textbf{not assuming waiting and
+success are independent}---the shorter remaining time is precisely why the
+numerator uses \(h_B(1-w)\), rather than \(h_B(1)\).
+
+\newpage
+\section{Numbers and the next-event draw}
+Now make the underlying three-state continuous-time Markov chain (CTMC)
+explicit. With rows and columns ordered A, B, C, its rate matrix is
+\[
+Q=\begin{pmatrix}-2&1&1\\1&-2&1\\1&1&-2\end{pmatrix}.
+\]
+The total rate of leaving any state is 2. More generally, write
+\[
+h_i(t)=\Prob\{\text{end in A after }t\text{ more units}\mid\text{currently in }i\}.
+\]
+Here \(t\) is \emph{time remaining}, not elapsed time. This probability includes
+any number of intervening changes, including departures from A followed by returns;
+it is not the probability of merely visiting A before the deadline.
+For compact notation below, let \(C\) denote success and \(N_w\) denote waiting.
+Every probability also conditions on starting in B. Waiting excludes departures
+and returns to B during the interval.
+
+For this symmetric example, \(P(t)=\exp(Qt)\), giving
+\[
+h_A(t)=\frac{1+2e^{-3t}}{3},\qquad
+h_B(t)=h_C(t)=\frac{1-e^{-3t}}{3}.
+\]
+For a half-unit wait,
+\[
+\Prob(N_{0.5})=e^{-1}\simeq0.368,\qquad
+\Prob(N_{0.5}\mid C)
+=e^{-1}\frac{1-e^{-1.5}}{1-e^{-3}}\simeq0.301.
+\]
+Among 10,000 ordinary histories, the expected number ending in A is approximately
+3,167. The expected number both waiting half a unit and ending in A is approximately
+953. Thus the fraction waiting among successful histories is about
+\(953/3167=0.301\). These are expected counts, not simulation results.
+
+\subsection{From a no-event probability to a waiting time}
+Let \(W\) be the next-change waiting time. Then \(S(w)=\Prob(W>w\mid C)\)
+for intervals before the endpoint. Define the \emph{cumulative hazard}
+\[
+H(w)=-\log S(w)=2w+\log h_B(1)-\log h_B(1-w).
+\]
+Draw \(Z\sim\operatorname{Exp}(1)\), and find the first \(w\) for which
+\(H(w)=Z\). This works because
+\[
+\Prob\{Z>H(w)\}=e^{-H(w)}=S(w).
+\]
+The exponential draw is a dimensionless threshold; it is \emph{not} a waiting
+time drawn at the original event rate. Equivalently, draw \(U\) uniformly on
+\((0,1)\) and solve \(S(w)=U\).
+
+Starting in B and ending in A, \(h_B(0)=0\), so the probability of no change
+throughout the remaining interval is zero. Starting in A, that probability can
+be positive. If the threshold exceeds the cumulative hazard to the endpoint,
+record no further event. Do not force an event in this case.
+
+\subsection{Choose the destination, then repeat}
+If a change occurs with \(u\) time units remaining, choose \(j\ne i\) with
+weights \(q_{ij}h_j(u)\). From B with \(u=0.5\), this gives approximately
+65\% for A and 35\% for C. Recompute the waiting-time distribution from the
+new state and remaining time. Reaching A does not stop the process: it can
+leave and return before the endpoint.
+
+Both timing and destination must be conditioned. Weighting destinations but
+retaining ordinary exponential waiting times is generally incorrect. The
+conditional instantaneous rates are
+\[
+q^*_{ij}(u)=q_{ij}\frac{h_j(u)}{h_i(u)},\qquad j\ne i,
+\]
+where \(h_i(u)>0\). This is a Doob \(h\)-transform. Even a constant original
+\(Q\) gives time-dependent conditional rates. Endpoint-conditioned CTMC sampling,
+including direct, rejection and uniformization methods, is reviewed by
+Hobolth and Stone~\cite{hobolth}.
+
+\newpage
+\section{The same reasoning in GeoSSE}
+GeoSSE has three geographic states: A, B and AB. In addition to range changes,
+lineages speciate and go extinct. We must distinguish two required outcomes:
+\begin{description}
+\item[\(D_i(t)\):] The likelihood of the observed descendants of a particular
+backbone branch, given a lineage in state \(i\) at age \(t\).
+For a terminal branch ending in A under complete sampling, this is the probability
+of exactly one living descendant, in A, and no other living descendants.
+\item[\(E_i(t)\):] The probability that a lineage in state \(i\) at age \(t\)
+leaves no living descendants at the present. Descendants can change state and
+speciate; the entire descendant clade must eventually die out.
+\end{description}
+For a present-day A tip and literal extinction conditioning,
+\[
+(D_A(0),D_B(0),D_{AB}(0))=(1,0,0),\qquad E_i(0)=0.
+\]
+The \(E\) curves depend on state, time and model parameters, not on which
+observed branch is being traversed. The \(D\) curves depend on its observed
+descendants: an A-ending branch and a B-ending branch generally have different
+\(D\) curves. Their entries are likelihoods, not normalized state probabilities.
+
+\subsection{Waiting along a backbone or a side lineage}
+Let \(t\) be the current age, \(u<t\) a younger age, and \(r_i(v)\) the
+\emph{original} total event rate in state \(i\). The same conditional-probability
+argument gives
+\begin{equation}
+S_i(t,u)=\exp\left[-\int_u^t r_i(v)\,dv\right]\frac{h_i(u)}{h_i(t)},
+\quad h=D\text{ on the backbone},\quad h=E\text{ on an extinct side lineage}.
+\end{equation}
+For constant rates this integral is \(r_i(t-u)\). With epochs, integrate each
+epoch's rate over its overlap with the interval. The conditional cumulative hazard is
+\[
+H_i(t,u)=\int_u^t r_i(v)\,dv+\log h_i(t)-\log h_i(u).
+\]
+The R variable called \texttt{hazard} in the demonstration holds this
+\emph{cumulative} hazard, not the instantaneous rate. An \(\operatorname{Exp}(1)\)
+threshold is inverted to obtain the event age. Age decreases during simulation.
+For a backbone branch, inversion stops at its younger node or tip. A side
+clade is instead conditioned on extinction by age zero.
+
+\subsection{Choosing events at the sampled age}
+Write \(\lambda_{i\to\{j,k\}}\) for the rate of one unordered splitting
+event. At a hidden backbone split, the two assignments have weights
+\[
+\underbrace{\lambda_{i\to\{j,k\}}D_jE_k}_{j\text{ continues; }k\text{ dies out}},
+\qquad
+\underbrace{\lambda_{i\to\{j,k\}}D_kE_j}_{k\text{ continues; }j\text{ dies out}}.
+\]
+Range-change weights are \(q_{ij}D_j\); backbone death is incompatible with
+the required descendants. If \(j=k\), the combined hidden-split weight is
+\(2\lambda D_jE_j\): either daughter can carry the observed descendants.
+
+\newpage
+\section{Explicitly expanding extinct species}
+For an extinction-conditioned side lineage, the unnormalized event weights are
+\[
+\begin{array}{ll}
+\text{Death of the lineage:} & \mu_i,\\[2pt]
+\text{Range change }i\to j: & q_{ij}E_j(t),\\[2pt]
+\text{Split }i\to\{j,k\}: & \lambda_{i\to\{j,k\}}E_j(t)E_k(t).
+\end{array}
+\]
+Normalize over the available events after drawing the event age. After a split,
+continue both daughters, each conditional on extinction. There is no factor of
+two here: both daughters must die out, and the split is counted once.
+
+For example, an A side lineage has weights
+\[
+A\to\varnothing:\ x_A,\qquad
+A\to AB:\ d_AE_{AB}(t),\qquad
+A\to A+A:\ s_AE_A(t)^2.
+\]
+An AB lineage does not die immediately in standard GeoSSE: local loss of A
+produces B, and local loss of B produces A. It can subsequently die through
+the process starting from those narrower ranges.
+
+\section{The two-tip demonstration}
+The accompanying \texttt{geosse-two-tip-walkthrough.R} uses a 5-Ma root,
+one observed A tip and one observed B tip, complete sampling, and known rates
+\[
+(s_A,s_B,s_{AB},x_A,x_B,d_A,d_B)
+=(0.21,0.16,0.09,0.13,0.11,0.07,0.05).
+\]
+It integrates \texttt{diversitree:::derivs.geosse} backward, combines the two
+daughter likelihoods at the observed root, and checks the log likelihood
+against \texttt{make.geosse}. Both give approximately \(-5.734600\), with
+\texttt{condition.surv=FALSE} and the specified root prior. This disables an
+additional crown-survival normalization; it does not remove conditioning of
+the mapping on the observed tree and tips.
+
+Root states have weights \(\pi_iD_i(\text{root})\). At the observed root,
+daughter states are sampled jointly using the splitting rate and both daughter
+likelihoods. Unlike a hidden split, both daughters are observed. Diversitree
+assigns half of an unordered mixed-state splitting rate to each orientation
+on the two labelled observed branches.
+
+The deliberately selected short realization has these events:
+\begin{center}
+\begin{tabular}{rl}
+\toprule
+Age (Ma)&Event\\\midrule
+5.000&Observed root: \(AB\to AB+B\)\\
+4.535&Left branch: \(AB\to A\)\\
+2.938&Hidden split: \(A\to A+A\)\\
+1.432&Side daughter dies\\
+0.000&Observed A and B tips survive\\\bottomrule
+\end{tabular}
+\end{center}
+This is an illustration, not an estimate of the expected number of extinct
+species. The script exposes each waiting-time draw and event-weight table.
+
+\newpage
+\section{What the construction does---and does not---claim}
+\begin{enumerate}
+\item \textbf{Avoiding rejection.} Ordinary simulation proposes histories
+without considering their endpoint. Conditional timing and event weights
+sample directly from compatible histories. The no-event formula alone is
+not sufficient: the event-choice weights must also be correct.
+\item \textbf{Not forcing a state or killing survivors.} The required outcome
+changes the distribution throughout the history. We do not change the last
+state by hand or remove living side descendants afterward.
+\item \textbf{Complete versus incomplete sampling.} In this note,
+\(E_i(0)=0\) means literal extinction. In an incomplete-sampling likelihood,
+\(E_i(0)=1-\rho_i\) instead describes no \emph{sampled} living descendants;
+unobserved survivors are possible. These are different conditional targets.
+\item \textbf{No fossils.} Simulated extinct species are latent histories,
+not fossil observations. Conditioning on fossils requires an appropriate
+fossil observation model.
+\item \textbf{Numerical accuracy.} The conditional-probability identity is
+mathematical. An implementation still approximates probability curves and
+inverts them numerically. It must be checked against analytical examples,
+independent rejection samplers where feasible, and numerical refinement.
+\item \textbf{Parameter uncertainty.} The example fixes all rates. Variation
+among maps therefore describes conditional history uncertainty, not uncertainty
+in the estimated rates or model choice.
+\end{enumerate}
+
+\subsection{Connection to Freyman and H\"ohna}
+Freyman and H\"ohna~\cite{freyman} use backward descendant likelihoods and
+forward-time equations to sample state histories along observed branches over
+short time intervals. The common principle is to weight forward possibilities
+by compatibility with observed descendants. The event-time construction here
+instead inverts conditional no-event probabilities and subsequently expands
+extinction-conditioned side clades explicitly. It is not a verbatim
+implementation of their forward-equation algorithm. Agreement of backbone
+distributions under matched models and conditioning is a validation target,
+not a validation result established by this note.
+
+\subsection{One sentence to remember}
+\begin{quote}
+The conditional probability of waiting equals the ordinary probability of
+waiting, multiplied by how that wait changes the probability of completing
+the required history.
+\end{quote}
+
+\begin{thebibliography}{9}
+\bibitem{hobolth}
+Hobolth, A. and Stone, E. A. (2009).
+Simulation from endpoint-conditioned, continuous-time Markov chains on a finite
+state space, with applications to molecular evolution.
+\emph{The Annals of Applied Statistics}, 3, 1204--1231.
+\href{https://doi.org/10.1214/09-AOAS247}{doi:10.1214/09-AOAS247}.
+
+\bibitem{freyman}
+Freyman, W. A. and H\"ohna, S. (2019).
+Stochastic character mapping of state-dependent diversification reveals the
+tempo of evolutionary decline in self-compatible Onagraceae lineages.
+\emph{Systematic Biology}, 68, 505--519.
+\href{https://pubmed.ncbi.nlm.nih.gov/30476308/}{Publication record}.
+\end{thebibliography}
+\end{document}

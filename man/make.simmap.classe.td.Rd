@@ -23,10 +23,14 @@ make.simmap.classe.td(
   extinction.sampler = c("direct", "rejection"),
   extinction.control = list(),
   backbone.method = c("asr-weighted", "tree-conditioned"),
-  root.prior = NULL
+  root.prior = NULL,
+  expand.side.lineages = TRUE
 )
 }
 \arguments{
+\item{expand.side.lineages}{Logical. FALSE skips growing all side trees but
+retains hidden births and founding states. E and backbone conditioning are
+unchanged. TRUE preserves the default behaviour.}
 \item{tree}{Rooted binary ultrametric backbone, without a stem/root edge.}
 
 \item{pars}{Named full parameter vector in \code{\link[=make.classe.td]{make.classe.td()}} order:

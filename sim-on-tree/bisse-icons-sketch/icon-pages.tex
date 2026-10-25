@@ -1,0 +1,16 @@
+\documentclass{article}
+\usepackage[paperwidth=36mm,paperheight=40mm,margin=2mm]{geometry}
+\usepackage{bisse-sketch}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\newcommand{\iconpage}[1]{\noindent\makebox[\textwidth][c]{#1}\par\newpage}
+\begin{document}
+\iconpage{\bisseBlocks[30mm]{0}{1}}
+\iconpage{\bisseBlocks[30mm]{1}{0}}
+\iconpage{\bisseUpper[30mm]{0}}
+\iconpage{\bisseUpper[30mm]{1}}
+\iconpage{\bisseLower[30mm]{0}}
+\iconpage{\bisseLower[30mm]{1}}
+\iconpage{\bisseDeath[30mm]}
+\iconpage{\bisseNoEvent[20mm]}
+\end{document}

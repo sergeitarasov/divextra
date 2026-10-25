@@ -9,6 +9,25 @@
 
 # User-specific files
 .Ruserdata
+.DS_Store
+._*
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# Local scratch work and rendered working copies (retain originals locally).
+/tmp/
+/output/
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
 
 # Example code in package build process
 *-Ex.R
@@ -51,3 +70,7 @@ rsconnect/
 inst/doc
 /doc/
 /Meta/
+
+# Research benchmarks stay local until ready for publication.
+/inst/benchmarks/
+/benchmarks/

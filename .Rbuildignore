@@ -7,3 +7,6 @@
 ^sim-on-tree($|/)
 ^\.DS_Store$
 ^inst/benchmarks($|/)
+^benchmarks($|/)
+^output($|/)
+^tmp($|/)
